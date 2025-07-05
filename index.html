@@ -114,4 +114,67 @@
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
-    const kategorier = ['forslag', 'ovrigt', 'datum']()
+    const kategorier = ['forslag', 'ovrigt', 'datum'];
+
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('sv-SE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    function renderLappar(data) {
+      kategorier.forEach(kategori => {
+        const lista = document.getElementById(kategori + '-lista');
+        lista.innerHTML = '';
+      });
+
+      for (const id in data) {
+        const entry = data[id];
+        if (!kategorier.includes(entry.kategori)) continue;
+
+        const lapp = document.createElement('div');
+        lapp.className = 'etikett';
+        lapp.innerText = entry.text;
+
+        const datum = document.createElement('div');
+        datum.className = 'datum';
+        datum.innerText = formatDate(entry.timestamp);
+
+        lapp.appendChild(datum);
+
+        lapp.onclick = () => {
+          if (confirm('Vill du ta bort denna lapp?')) {
+            remove(ref(database, 'lappar/' + id));
+          }
+        };
+
+        const lista = document.getElementById(entry.kategori + '-lista');
+        lista.appendChild(lapp);
+      }
+    }
+
+    const lapparRef = ref(database, 'lappar');
+    onValue(lapparRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      renderLappar(data);
+    });
+
+    document.getElementById('laggTillBtn').onclick = () => {
+      const text = document.getElementById('inputText').value.trim();
+      const kategori = document.getElementById('kategori').value;
+
+      if (text !== '') {
+        push(ref(database, 'lappar'), {
+          text,
+          kategori,
+          timestamp: Date.now()
+        });
+        document.getElementById('inputText').value = '';
+      }
+    };
+  </script>
+</body>
+</html>
