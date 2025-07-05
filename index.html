@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lagtavla VIF</title>
   <style>
     body {
@@ -72,10 +72,35 @@
       cursor: pointer;
     }
   </style>
-  <!-- Firebase SDK -->
+</head>
+<body>
+  <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
+
+  <div class="kategori-container">
+    <div class="kategori">
+      <div id="forslag-lista" class="etikettlista"></div>
+    </div>
+    <div class="kategori">
+      <div id="ovrigt-lista" class="etikettlista"></div>
+    </div>
+    <div class="kategori">
+      <div id="datum-lista" class="etikettlista"></div>
+    </div>
+  </div>
+
+  <div id="input-container">
+    <input type="text" id="nyLappText" placeholder="Skriv din lapp här..." />
+    <select id="kategoriVal">
+      <option value="forslag">Förslag</option>
+      <option value="ovrigt">Övrigt</option>
+      <option value="datum">Viktiga datum</option>
+    </select>
+    <button id="laggTillBtn">Lägg till lapp</button>
+  </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
@@ -117,39 +142,10 @@
       const text = document.getElementById('nyLappText').value.trim();
       const kategori = document.getElementById('kategoriVal').value;
       if (text !== '') {
-        const kategoriRef = ref(db, kategori);
-        push(kategoriRef, { text });
+        push(ref(db, kategori), { text });
         document.getElementById('nyLappText').value = '';
       }
     };
   </script>
-</head>
-<body>
-  <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
-
-  <div class="kategori-container">
-    <div class="kategori">
-      <button>FÖRSLAG</button>
-      <div id="forslag-lista" class="etikettlista"></div>
-    </div>
-    <div class="kategori">
-      <button>ÖVRIGT</button>
-      <div id="ovrigt-lista" class="etikettlista"></div>
-    </div>
-    <div class="kategori">
-      <button>VIKTIGA DATUM</button>
-      <div id="datum-lista" class="etikettlista"></div>
-    </div>
-  </div>
-
-  <div id="input-container">
-    <input type="text" id="nyLappText" placeholder="Skriv din lapp här...">
-    <select id="kategoriVal">
-      <option value="forslag">Förslag</option>
-      <option value="ovrigt">Övrigt</option>
-      <option value="datum">Viktiga datum</option>
-    </select>
-    <button id="laggTillBtn">Lägg till lapp</button>
-  </div>
 </body>
 </html>
