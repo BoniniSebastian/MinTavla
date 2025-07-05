@@ -42,121 +42,70 @@
       padding: 8px;
       margin: 5px;
       border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .etikett:hover {
-      background-color: #ddd;
-    }
-    #input-container {
-      margin-top: 20px;
-    }
-    #nyLappText, #pinkodInput {
-      padding: 10px;
-      font-size: 16px;
-      width: 60%;
-      border-radius: 5px;
-      border: none;
-      margin-bottom: 10px;
-    }
-    #kategoriVal {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-    }
-    #laggTillBtn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      margin-top: 10px;
-      cursor: pointer;
     }
   </style>
-
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
-      authDomain: "vh1-lagtavla.firebaseapp.com",
-      projectId: "vh1-lagtavla",
-      storageBucket: "vh1-lagtavla.appspot.com",
-      messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47",
-      measurementId: "G-JDFQWC97PS",
-      databaseURL: "https://vh1-lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const kategorier = ['forslag', 'ovrigt', 'datum'];
-
-    function renderLappar(kategori, data) {
-      const lista = document.getElementById(kategori + '-lista');
-      lista.innerHTML = '';
-      for (const id in data) {
-        const lapp = document.createElement('div');
-        lapp.className = 'etikett';
-        lapp.innerText = data[id].text;
-        lapp.onclick = () => remove(ref(db, kategori + '/' + id));
-        lista.appendChild(lapp);
-      }
-    }
-
-    kategorier.forEach(kategori => {
-      const kategoriRef = ref(db, kategori);
-      onValue(kategoriRef, snapshot => {
-        const data = snapshot.val() || {};
-        renderLappar(kategori, data);
-      });
-    });
-
-    document.getElementById('laggTillBtn').onclick = () => {
-      const pinkod = document.getElementById('pinkodInput').value.trim();
-      if (pinkod !== '1234') {
-        alert('Fel PIN-kod');
-        return;
-      }
-
-      const text = document.getElementById('nyLappText').value.trim();
-      const kategori = document.getElementById('kategoriVal').value;
-      if (text !== '') {
-        const kategoriRef = ref(db, kategori);
-        push(kategoriRef, { text });
-        document.getElementById('nyLappText').value = '';
-        document.getElementById('pinkodInput').value = '';
-      }
-    };
-  </script>
 </head>
 <body>
   <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
 
-  <div class="kategori-container">
-    <div class="kategori">
-      <div id="forslag-lista" class="etikettlista"></div>
-    </div>
-    <div class="kategori">
-      <div id="ovrigt-lista" class="etikettlista"></div>
-    </div>
-    <div class="kategori">
-      <div id="datum-lista" class="etikettlista"></div>
-    </div>
-  </div>
+  <input id="lappText" type="text" placeholder="Skriv din lapp här..." style="width: 80%; max-width: 400px; padding: 10px;">
+  <br><br>
+  <input id="pinKod" type="password" placeholder="PIN-kod krävs (1234)" style="width: 80%; max-width: 400px; padding: 10px;">
+  <br><br>
+  <select id="kategoriVal" style="padding: 10px;">
+    <option value="Förslag">Förslag</option>
+    <option value="Info">Info</option>
+    <option value="Kritik">Kritik</option>
+  </select>
+  <button onclick="läggTillLapp()" style="padding: 10px 20px; margin-left: 10px;">Lägg till lapp</button>
 
-  <div id="input-container">
-    <input type="text" id="nyLappText" placeholder="Skriv din lapp här...">
-    <input type="password" id="pinkodInput" placeholder="PIN-kod krävs (1234)">
-    <br>
-    <select id="kategoriVal">
-      <option value="forslag">Förslag</option>
-      <option value="ovrigt">Övrigt</option>
-      <option value="datum">Viktiga datum</option>
-    </select>
-    <button id="laggTillBtn">Lägg till lapp</button>
-  </div>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.firebasestorage.app",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47",
+      measurementId: "G-JDFQWC97PS"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function läggTillLapp() {
+      const text = document.getElementById('lappText').value.trim();
+      const pin = document.getElementById('pinKod').value.trim();
+      const kategori = document.getElementById('kategoriVal').value;
+
+      if (pin !== "1234") {
+        alert("Fel PIN-kod");
+        return;
+      }
+
+      if (!text) {
+        alert("Skriv något på lappen.");
+        return;
+      }
+
+      const lappData = {
+        text,
+        kategori,
+        timestamp: Date.now()
+      };
+
+      db.ref("lappar/" + kategori).push(lappData).then(() => {
+        alert("Lapp tillagd!");
+        document.getElementById('lappText').value = "";
+        document.getElementById('pinKod').value = "";
+      }).catch((error) => {
+        alert("Fel vid tillägg: " + error.message);
+      });
+    }
+  </script>
 </body>
 </html>
