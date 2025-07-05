@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anslagstavla</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-image: url('assets/bg.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 1em;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .board {
+      display: flex;
+      justify-content: space-around;
+      padding: 2em;
+    }
+
+    .column {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 1em;
+      border-radius: 10px;
+      width: 30%;
+      min-height: 400px;
+      text-align: center;
+    }
+
+    .note {
+      background: #fff9c4;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      border-radius: 5px;
+      box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .note.done {
+      background: #c8e6c9;
+      text-decoration: line-through;
+    }
+
+    .note button {
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #888;
+    }
+
+    form {
+      text-align: center;
+      padding: 1em;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    textarea {
+      width: 80%;
+      height: 60px;
+      margin-bottom: 0.5em;
+    }
+
+    select, button {
+      padding: 0.5em;
+      margin: 0.5em;
+    }
+
+    .category-img {
+      width: 100%;
+      max-width: 300px;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📌 Digital Anslagstavla</h1>
+  </header>
+
+  <div class="board">
+    <div class="column" id="ideer" ondragover="event.preventDefault()" ondrop="handleDrop(event, 'ideer')">
+      <img src="assets/ideer.png" alt="Idéer" class="category-img" />
+    </div>
+    <div class="column" id="pagang" ondragover="event.preventDefault()" ondrop="handleDrop(event, 'pagang')">
+      <img src="assets/pagang.png" alt="Pågår" class="category-img" />
+    </div>
+    <div class="column" id="klart" ondragover="event.preventDefault()" ondrop="handleDrop(event, 'klart')">
+      <img src="assets/klart.png" alt="Färdigt" class="category-img" />
+    </div>
+  </div>
+
+  <form id="noteForm">
+    <textarea id="noteText" placeholder="Skriv din lapp här..."></textarea><br />
+    <select id="category">
+      <option value="ideer">Idéer</option>
+      <option value="pagang">Pågår</option>
+      <option value="klart">Färdigt</option>
+    </select>
+    <button type="submit">Lägg till lapp</button>
+  </form>
+
+  <script>
+    function createNote(text, isDone = false) {
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.textContent = text;
+      note.setAttribute('draggable', 'true');
+      if (isDone) note.classList.add('done');
+
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '✕';
+      delBtn.onclick = function (e) {
+        e.stopPropagation();
+        note.remove();
+        saveNotes();
+      };
+
+      note.appendChild(delBtn);
+
+      note.addEventListener('click', function () {
+        note.classList.toggle('done');
+        saveNotes();
+      });
+
+      note.addEventListener('dragstart', function (e) {
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+          text: note.childNodes[0].nodeValue.trim(),
+          done: note.classList.contains('done')
+        }));
+        note.remove();
+        saveNotes();
+      });
+
+      return note;
+    }
+
+    function handleDrop(e, category) {
+      e.preventDefault();
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const note = createNote(data.text, data.done);
+      document.getElementById(category).appendChild(note);
+      saveNotes();
+    }
+
+    function loadNotes() {
+      const notes = JSON.parse(localStorage.getItem('notes') || '{}');
+      ['ideer', 'pagang', 'klart'].forEach(cat => {
+        const column = document.getElementById(cat);
+        if (notes[cat]) {
+          notes[cat].forEach(entry => {
+            const note = createNote(entry.text, entry.done);
+            column.appendChild(note);
+          });
+        }
+      });
+    }
+
+    function saveNotes() {
+      const notes = {
+        ideer: [],
+        pagang: [],
+        klart: []
+      };
+      ['ideer', 'pagang', 'klart'].forEach(cat => {
+        const column = document.getElementById(cat);
+        notes[cat] = Array.from(column.querySelectorAll('.note')).map(note => ({
+          text: note.childNodes[0].nodeValue.trim(),
+          done: note.classList.contains('done')
+        }));
+      });
+      localStorage.setItem('notes', JSON.stringify(notes));
+    }
+
+    document.getElementById('noteForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const text = document.getElementById('noteText').value.trim();
+      const cat = document.getElementById('category').value;
+      if (!text) return;
+
+      const note = createNote(text);
+      document.getElementById(cat).appendChild(note);
+      document.getElementById('noteText').value = '';
+      saveNotes();
+    });
+
+    window.addEventListener('load', loadNotes);
+  </script>
+</body>
+</html>
