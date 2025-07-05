@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lagtavla VIF</title>
   <style>
     body {
@@ -26,6 +26,7 @@
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
+      margin-bottom: 30px;
     }
     .kategori {
       width: 150px;
@@ -33,7 +34,6 @@
     .etikettlista {
       min-height: 100px;
       padding: 10px;
-      margin-top: 10px;
       border-radius: 10px;
     }
     .etikett {
@@ -42,27 +42,61 @@
       padding: 8px;
       margin: 5px;
       border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .etikett:hover {
+      background-color: #ddd;
+    }
+    #input-container {
+      margin-top: 20px;
+    }
+    #inputText, #pin {
+      padding: 10px;
+      font-size: 16px;
+      width: 60%;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 10px;
+    }
+    #kategori {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    #laggTillBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
 
-  <input id="lappText" type="text" placeholder="Skriv din lapp här..." style="width: 80%; max-width: 400px; padding: 10px;">
-  <br><br>
-  <input id="pinKod" type="password" placeholder="PIN-kod krävs (1234)" style="width: 80%; max-width: 400px; padding: 10px;">
-  <br><br>
-  <select id="kategoriVal" style="padding: 10px;">
-    <option value="Förslag">Förslag</option>
-    <option value="Info">Info</option>
-    <option value="Kritik">Kritik</option>
-  </select>
-  <button onclick="läggTillLapp()" style="padding: 10px 20px; margin-left: 10px;">Lägg till lapp</button>
+  <div class="kategori-container">
+    <div class="kategori"><div id="forslag-lista" class="etikettlista"></div></div>
+    <div class="kategori"><div id="ovrigt-lista" class="etikettlista"></div></div>
+    <div class="kategori"><div id="datum-lista" class="etikettlista"></div></div>
+  </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <script>
+  <div id="input-container">
+    <input type="text" id="inputText" placeholder="Skriv din lapp här..."><br>
+    <input type="password" id="pin" placeholder="PIN-kod krävs (1234)"><br>
+    <select id="kategori">
+      <option value="forslag">Förslag</option>
+      <option value="ovrigt">Övrigt</option>
+      <option value="datum">Viktiga datum</option>
+    </select><br>
+    <button id="laggTillBtn">Lägg till lapp</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
       authDomain: "vh1-lagtavla.firebaseapp.com",
@@ -74,38 +108,54 @@
       measurementId: "G-JDFQWC97PS"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-    function läggTillLapp() {
-      const text = document.getElementById('lappText').value.trim();
-      const pin = document.getElementById('pinKod').value.trim();
-      const kategori = document.getElementById('kategoriVal').value;
+    const kategorier = ['forslag', 'ovrigt', 'datum'];
 
-      if (pin !== "1234") {
-        alert("Fel PIN-kod");
-        return;
+    function renderLappar(kategori, data) {
+      const lista = document.getElementById(kategori + '-lista');
+      lista.innerHTML = '';
+      for (const id in data) {
+        const lapp = document.createElement('div');
+        lapp.className = 'etikett';
+        lapp.innerText = data[id].text;
+        lapp.onclick = () => {
+          if (confirm('Vill du ta bort denna lapp?')) {
+            remove(ref(database, 'lappar/' + id));
+          }
+        };
+        if (data[id].kategori === kategori) {
+          lista.appendChild(lapp);
+        }
       }
-
-      if (!text) {
-        alert("Skriv något på lappen.");
-        return;
-      }
-
-      const lappData = {
-        text,
-        kategori,
-        timestamp: Date.now()
-      };
-
-      db.ref("lappar/" + kategori).push(lappData).then(() => {
-        alert("Lapp tillagd!");
-        document.getElementById('lappText').value = "";
-        document.getElementById('pinKod').value = "";
-      }).catch((error) => {
-        alert("Fel vid tillägg: " + error.message);
-      });
     }
+
+    kategorier.forEach(kategori => {
+      const lapparRef = ref(database, 'lappar');
+      onValue(lapparRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        renderLappar(kategori, data);
+      });
+    });
+
+    document.getElementById('laggTillBtn').onclick = () => {
+      const text = document.getElementById('inputText').value.trim();
+      const kategori = document.getElementById('kategori').value;
+      const pin = document.getElementById('pin').value.trim();
+
+      if (pin !== '1234') {
+        alert('Fel PIN-kod!');
+        return;
+      }
+
+      if (text !== '') {
+        const lapparRef = ref(database, 'lappar');
+        push(lapparRef, { text, kategori, timestamp: Date.now() });
+        document.getElementById('inputText').value = '';
+        document.getElementById('pin').value = '';
+      }
+    };
   </script>
 </body>
 </html>
