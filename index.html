@@ -1,105 +1,113 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lagtavla</title>
   <style>
     body {
-      margin: 0;
       font-family: sans-serif;
       background-image: url('VIF HERRAR S2526.png');
       background-size: cover;
       background-position: center;
-      background-attachment: fixed;
       color: white;
       text-align: center;
+      margin: 0;
+      padding: 1rem;
     }
 
     h1 {
-      margin-top: 40px;
-      text-shadow: 1px 1px 2px black;
+      font-size: 2em;
+      margin-bottom: 0.2em;
     }
 
-    .categories {
+    h2 {
+      font-size: 1em;
+      margin-bottom: 1em;
+    }
+
+    .board {
       display: flex;
       justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
       flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
 
     .category {
-      width: 100px;
+      flex: 1 1 200px;
+    }
+
+    .category h3 {
+      color: white;
+      margin-bottom: 0.5rem;
     }
 
     .category img {
-      width: 100%;
-      cursor: default;
+      width: 150px;
+      margin-bottom: 1rem;
     }
 
-    .label {
-      margin-bottom: 10px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 1px 1px 2px black;
-    }
-
-    .notes {
-      margin-top: 10px;
-      padding: 10px;
-      min-height: 100px;
-      background-color: rgba(255, 255, 255, 0.9);
+    .note {
+      background-color: #f8f8f8;
       color: black;
-      border-radius: 8px;
+      padding: 1rem;
+      margin: 0.5rem auto;
+      border-radius: 10px;
+      max-width: 160px;
+      position: relative;
     }
 
-    .note-input {
-      margin-top: 30px;
-    }
-
-    input[type="text"] {
-      width: 60%;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
+    .note button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: none;
       border: none;
-    }
-
-    select, button {
-      padding: 10px;
-      font-size: 16px;
-      margin-left: 10px;
-      border-radius: 5px;
-      border: none;
+      font-size: 1rem;
       cursor: pointer;
+    }
+
+    .note select {
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+
+    .input-area {
+      margin-top: 2rem;
+    }
+
+    input, select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 0.2rem;
     }
   </style>
 </head>
 <body>
   <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
 
-  <div class="categories">
+  <div class="board">
     <div class="category">
-      <div class="label">Förslag</div>
-      <img src="forslag.PNG" alt="Förslag">
-      <div id="forslag-notes" class="notes"></div>
+      <h3>Förslag</h3>
+      <img src="forslag.PNG" alt="Förslag" />
+      <div id="forslag"></div>
     </div>
     <div class="category">
-      <div class="label">Övrigt</div>
-      <img src="ovrigt.PNG" alt="Övrigt">
-      <div id="ovrigt-notes" class="notes"></div>
+      <h3>Övrigt</h3>
+      <img src="ovrigt.PNG" alt="Övrigt" />
+      <div id="ovrigt"></div>
     </div>
     <div class="category">
-      <div class="label">Viktiga datum</div>
-      <img src="viktiga-datum.PNG" alt="Viktiga datum">
-      <div id="datum-notes" class="notes"></div>
+      <h3>Viktiga datum</h3>
+      <img src="viktiga-datum.PNG" alt="Viktiga datum" />
+      <div id="datum"></div>
     </div>
   </div>
 
-  <div class="note-input">
-    <input type="text" id="note-text" placeholder="Skriv din lapp här...">
-    <select id="note-category">
+  <div class="input-area">
+    <input type="text" id="noteText" placeholder="Skriv din lapp här…" />
+    <select id="noteCategory">
       <option value="forslag">Förslag</option>
       <option value="ovrigt">Övrigt</option>
       <option value="datum">Viktiga datum</option>
@@ -109,13 +117,35 @@
 
   <script>
     function addNote() {
-      const text = document.getElementById('note-text').value.trim();
-      const category = document.getElementById('note-category').value;
-      if (text === '') return;
-      const noteDiv = document.createElement('div');
-      noteDiv.textContent = text;
-      document.getElementById(`${category}-notes`).appendChild(noteDiv);
-      document.getElementById('note-text').value = '';
+      const text = document.getElementById('noteText').value.trim();
+      const category = document.getElementById('noteCategory').value;
+      if (!text) return;
+
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.innerHTML = `
+        ${text}
+        <button onclick="deleteNote(this)">❌</button>
+        <select onchange="moveNote(this)">
+          <option disabled selected>Flytta till…</option>
+          <option value="forslag">Förslag</option>
+          <option value="ovrigt">Övrigt</option>
+          <option value="datum">Viktiga datum</option>
+        </select>
+      `;
+
+      document.getElementById(category).appendChild(note);
+      document.getElementById('noteText').value = '';
+    }
+
+    function deleteNote(button) {
+      button.parentElement.remove();
+    }
+
+    function moveNote(select) {
+      const note = select.parentElement;
+      const category = select.value;
+      document.getElementById(category).appendChild(note);
     }
   </script>
 </body>
