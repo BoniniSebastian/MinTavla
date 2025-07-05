@@ -72,9 +72,57 @@
       cursor: pointer;
     }
   </style>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.firebasestorage.app",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47",
+      measurementId: "G-JDFQWC97PS",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const kategorier = ['forslag', 'ovrigt', 'datum'];
+
+    function renderLappar(kategori, data) {
+      const lista = document.getElementById(kategori + '-lista');
+      lista.innerHTML = '';
+      for (const id in data) {
+        const lapp = document.createElement('div');
+        lapp.className = 'etikett';
+        lapp.innerText = data[id].text;
+        lapp.onclick = () => remove(ref(db, kategori + '/' + id));
+        lista.appendChild(lapp);
+      }
+    }
+
+    kategorier.forEach(kategori => {
+      const kategoriRef = ref(db, kategori);
+      onValue(kategoriRef, snapshot => {
+        const data = snapshot.val() || {};
+        renderLappar(kategori, data);
+      });
+    });
+
+    document.getElementById('laggTillBtn').onclick = () => {
+      const text = document.getElementById('nyLappText').value.trim();
+      const kategori = document.getElementById('kategoriVal').value;
+      if (text !== '') {
+        const kategoriRef = ref(db, kategori);
+        push(kategoriRef, { text });
+        document.getElementById('nyLappText').value = '';
+      }
+    };
+  </script>
 </head>
 <body>
   <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
@@ -103,45 +151,5 @@
     </select>
     <button id="laggTillBtn">Lägg till lapp</button>
   </div>
-
-  <script>
-    const firebaseConfig = {
-      databaseURL: "https://lagtavla-vif-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const kategorier = ['forslag', 'ovrigt', 'datum'];
-
-    function renderLappar(kategori, data) {
-      const lista = document.getElementById(kategori + '-lista');
-      lista.innerHTML = '';
-      for (const id in data) {
-        const lapp = document.createElement('div');
-        lapp.className = 'etikett';
-        lapp.innerText = data[id].text;
-        lapp.onclick = () => db.ref(kategori + '/' + id).remove();
-        lista.appendChild(lapp);
-      }
-    }
-
-    kategorier.forEach(kategori => {
-      const ref = db.ref(kategori);
-      ref.on('value', snapshot => {
-        const data = snapshot.val() || {};
-        renderLappar(kategori, data);
-      });
-    });
-
-    document.getElementById('laggTillBtn').onclick = () => {
-      const text = document.getElementById('nyLappText').value.trim();
-      const kategori = document.getElementById('kategoriVal').value;
-      if (text !== '') {
-        const ref = db.ref(kategori);
-        ref.push({ text });
-        document.getElementById('nyLappText').value = '';
-      }
-    };
-  </script>
 </body>
 </html>
