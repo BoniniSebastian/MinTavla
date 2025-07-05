@@ -1,152 +1,154 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lagtavla</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lagtavla VIF</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       background-image: url('VIF HERRAR S2526.png');
       background-size: cover;
       background-position: center;
+      background-attachment: fixed;
       color: white;
       text-align: center;
-      margin: 0;
-      padding: 1rem;
+      padding: 20px;
     }
-
-    h1 {
-      font-size: 2em;
-      margin-bottom: 0.2em;
+    .rubrik {
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px black;
+      margin-bottom: 30px;
     }
-
-    h2 {
-      font-size: 1em;
-      margin-bottom: 1em;
-    }
-
-    .board {
+    .kategori-container {
       display: flex;
       justify-content: center;
+      gap: 20px;
       flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 2rem;
     }
-
-    .category {
-      flex: 1 1 200px;
-    }
-
-    .category h3 {
-      color: white;
-      margin-bottom: 0.5rem;
-    }
-
-    .category img {
+    .kategori {
       width: 150px;
-      margin-bottom: 1rem;
     }
-
-    .note {
-      background-color: #f8f8f8;
-      color: black;
-      padding: 1rem;
-      margin: 0.5rem auto;
+    .kategori img {
+      width: 100%;
+      height: auto;
+    }
+    .etikettlista {
+      min-height: 100px;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      margin-top: 10px;
       border-radius: 10px;
-      max-width: 160px;
-      position: relative;
     }
-
-    .note button {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: none;
-      border: none;
-      font-size: 1rem;
+    .etikett {
+      background: white;
+      color: black;
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      font-weight: bold;
       cursor: pointer;
     }
-
-    .note select {
-      margin-top: 0.5rem;
-      width: 100%;
+    .etikett:hover {
+      background-color: #ddd;
     }
-
-    .input-area {
-      margin-top: 2rem;
+    #input-container {
+      margin-top: 20px;
     }
-
-    input, select, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin: 0.2rem;
+    #nyLappText {
+      padding: 10px;
+      font-size: 16px;
+      width: 60%;
+      border-radius: 5px;
+      border: none;
+    }
+    #kategoriVal {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+    #laggTillBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
     }
   </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
+  <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
 
-  <div class="board">
-    <div class="category">
-      <h3>Förslag</h3>
-      <img src="forslag.PNG" alt="Förslag" />
-      <div id="forslag"></div>
+  <div class="kategori-container">
+    <div class="kategori">
+      <div>Förslag</div>
+      <img src="forslag.PNG" alt="Förslag">
+      <div id="forslag-lista" class="etikettlista"></div>
     </div>
-    <div class="category">
-      <h3>Övrigt</h3>
-      <img src="ovrigt.PNG" alt="Övrigt" />
-      <div id="ovrigt"></div>
+    <div class="kategori">
+      <div>Övrigt</div>
+      <img src="ovrigt.PNG" alt="Övrigt">
+      <div id="ovrigt-lista" class="etikettlista"></div>
     </div>
-    <div class="category">
-      <h3>Viktiga datum</h3>
-      <img src="viktiga-datum.PNG" alt="Viktiga datum" />
-      <div id="datum"></div>
+    <div class="kategori">
+      <div>Viktiga datum</div>
+      <img src="viktiga-datum.PNG" alt="Viktiga Datum">
+      <div id="datum-lista" class="etikettlista"></div>
     </div>
   </div>
 
-  <div class="input-area">
-    <input type="text" id="noteText" placeholder="Skriv din lapp här…" />
-    <select id="noteCategory">
+  <div id="input-container">
+    <input type="text" id="nyLappText" placeholder="Skriv din lapp här...">
+    <select id="kategoriVal">
       <option value="forslag">Förslag</option>
       <option value="ovrigt">Övrigt</option>
       <option value="datum">Viktiga datum</option>
     </select>
-    <button onclick="addNote()">Lägg till lapp</button>
+    <button id="laggTillBtn">Lägg till lapp</button>
   </div>
 
   <script>
-    function addNote() {
-      const text = document.getElementById('noteText').value.trim();
-      const category = document.getElementById('noteCategory').value;
-      if (!text) return;
+    const firebaseConfig = {
+      databaseURL: "https://lagtavla-vif-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-      const note = document.createElement('div');
-      note.className = 'note';
-      note.innerHTML = `
-        ${text}
-        <button onclick="deleteNote(this)">❌</button>
-        <select onchange="moveNote(this)">
-          <option disabled selected>Flytta till…</option>
-          <option value="forslag">Förslag</option>
-          <option value="ovrigt">Övrigt</option>
-          <option value="datum">Viktiga datum</option>
-        </select>
-      `;
+    const kategorier = ['forslag', 'ovrigt', 'datum'];
 
-      document.getElementById(category).appendChild(note);
-      document.getElementById('noteText').value = '';
+    function renderLappar(kategori, data) {
+      const lista = document.getElementById(kategori + '-lista');
+      lista.innerHTML = '';
+      for (const id in data) {
+        const lapp = document.createElement('div');
+        lapp.className = 'etikett';
+        lapp.innerText = data[id].text;
+        lapp.onclick = () => db.ref(kategori + '/' + id).remove();
+        lista.appendChild(lapp);
+      }
     }
 
-    function deleteNote(button) {
-      button.parentElement.remove();
-    }
+    kategorier.forEach(kategori => {
+      const ref = db.ref(kategori);
+      ref.on('value', snapshot => {
+        const data = snapshot.val() || {};
+        renderLappar(kategori, data);
+      });
+    });
 
-    function moveNote(select) {
-      const note = select.parentElement;
-      const category = select.value;
-      document.getElementById(category).appendChild(note);
-    }
+    document.getElementById('laggTillBtn').onclick = () => {
+      const text = document.getElementById('nyLappText').value.trim();
+      const kategori = document.getElementById('kategoriVal').value;
+      if (text !== '') {
+        const ref = db.ref(kategori);
+        ref.push({ text });
+        document.getElementById('nyLappText').value = '';
+      }
+    };
   </script>
 </body>
 </html>
