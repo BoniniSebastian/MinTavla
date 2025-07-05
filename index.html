@@ -1,69 +1,84 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lagtavla – VIF Herrar</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lagtavla VIF Herrar S25/26</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #000 url('https://i.imgur.com/DGk0K8G.jpeg') no-repeat center center fixed;
+      background-size: cover;
       margin: 0;
       padding: 0;
-      background: url('https://i.imgur.com/IaQf3Rf.jpg') no-repeat center center fixed;
-      background-size: cover;
       color: white;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     h1 {
       margin-top: 20px;
+      text-align: center;
     }
-    .form-container {
-      margin: 20px auto;
-      max-width: 600px;
+
+    .form-section {
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    input, select, button {
-      display: block;
-      margin: 10px auto;
+
+    input[type="text"], select {
       padding: 10px;
-      width: 90%;
+      margin: 5px;
+      width: 300px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: white;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .note {
+      background-color: rgba(255, 255, 255, 0.9);
+      color: black;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 8px;
       max-width: 500px;
     }
-    .notes-container {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 30px auto;
-      max-width: 1000px;
-    }
-    .note {
-      background-color: rgba(255,255,255,0.9);
-      border-radius: 10px;
-      padding: 15px;
-      min-width: 150px;
-      max-width: 250px;
-      color: black;
-    }
+
     .note .category {
       font-weight: bold;
-      font-size: 0.9em;
       margin-bottom: 5px;
     }
-    .note .date {
-      font-size: 0.8em;
-      color: #555;
+
+    .Aktiviteter {
+      color: #0055ff;
     }
-    .kategori-Aktiviteter { color: #2b83ba; }
-    .kategori-ViktigaDatum { color: #d7191c; }
+
+    .ViktigaDatum {
+      color: #ff5500;
+    }
   </style>
 </head>
 <body>
   <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
 
-  <div class="form-container">
+  <div class="form-section">
     <input type="text" id="noteText" placeholder="Skriv din lapp här...">
+    <input type="text" id="noteSubject" placeholder="Ämne (valfritt)">
     <select id="noteCategory">
       <option value="Aktiviteter">Aktiviteter</option>
       <option value="ViktigaDatum">Viktiga datum</option>
@@ -71,55 +86,60 @@
     <button onclick="addNote()">Lägg till lapp</button>
   </div>
 
-  <div class="notes-container" id="notes"></div>
+  <div id="notesContainer"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
-      authDomain: "vh1-lagtavla.firebaseapp.com",
-      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
-      projectId: "vh1-lagtavla",
-      storageBucket: "vh1-lagtavla.appspot.com",
-      messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47"
+      apiKey: "DIN_API_KEY",
+      authDomain: "DIN_AUTH_DOMAIN",
+      databaseURL: "DIN_DATABASE_URL",
+      projectId: "DITT_PROJECT_ID",
+      storageBucket: "DITT_STORAGE_BUCKET",
+      messagingSenderId: "DIN_MSG_ID",
+      appId: "DIN_APP_ID"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function addNote() {
-      const text = document.getElementById('noteText').value;
-      const category = document.getElementById('noteCategory').value;
-      const date = new Date().toLocaleDateString('sv-SE', {
-        day: 'numeric', month: 'long', year: 'numeric'
-      });
+      const text = document.getElementById("noteText").value.trim();
+      const subject = document.getElementById("noteSubject").value.trim();
+      const category = document.getElementById("noteCategory").value;
+      const createdAt = new Date().toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' });
 
-      if (text.trim() === '') return;
+      if (!text) return;
 
-      db.ref('notes').push({
+      const note = {
         text,
+        subject,
         category,
-        created: date
-      });
+        createdAt
+      };
 
-      document.getElementById('noteText').value = '';
+      db.ref("notes").push(note);
+      document.getElementById("noteText").value = "";
+      document.getElementById("noteSubject").value = "";
     }
 
-    db.ref('notes').on('value', snapshot => {
-      const container = document.getElementById('notes');
-      container.innerHTML = '';
-      const notes = snapshot.val();
-      if (!notes) return;
-      Object.entries(notes).reverse().forEach(([key, note]) => {
-        const div = document.createElement('div');
-        div.className = 'note';
-        const catClass = 'kategori-' + (note.category || '');
+    db.ref("notes").on("value", snapshot => {
+      const notesContainer = document.getElementById("notesContainer");
+      notesContainer.innerHTML = "";
+      snapshot.forEach(childSnapshot => {
+        const note = childSnapshot.val();
+        const div = document.createElement("div");
+        div.className = "note";
+
+        const subjectLine = note.subject ? `<div><strong>${note.subject}</strong></div>` : "";
         div.innerHTML = `
-          <div class="category ${catClass}">${note.category}</div>
+          <div class="category ${note.category}">${note.category}</div>
+          ${subjectLine}
           <div>${note.text}</div>
-          <div class="date">Skapad ${note.created}</div>
+          <div style="font-size: 0.8em; color: gray;">Skapad ${note.createdAt}</div>
         `;
-        container.appendChild(div);
+        notesContainer.appendChild(div);
       });
     });
   </script>
