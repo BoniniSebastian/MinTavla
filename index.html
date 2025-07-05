@@ -100,7 +100,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
@@ -114,8 +114,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const refLappar = ref(db, 'lappar');
+    const database = getDatabase(app);
+
     const kategorier = ['forslag', 'ovrigt', 'datum'];
 
     function formatDate(timestamp) {
@@ -127,41 +127,41 @@
       });
     }
 
-    const renderLapp = (id, data) => {
-      const lista = document.getElementById(`${data.kategori}-lista`);
-      if (!lista) return;
+    function renderLappar(data) {
+      kategorier.forEach(kategori => {
+        const lista = document.getElementById(kategori + '-lista');
+        lista.innerHTML = '';
+      });
 
-      const lapp = document.createElement('div');
-      lapp.className = 'etikett';
-      lapp.id = id;
-      lapp.innerText = data.text;
+      for (const id in data) {
+        const entry = data[id];
+        if (!kategorier.includes(entry.kategori)) continue;
 
-      const datum = document.createElement('div');
-      datum.className = 'datum';
-      datum.innerText = formatDate(data.timestamp);
-      lapp.appendChild(datum);
+        const lapp = document.createElement('div');
+        lapp.className = 'etikett';
+        lapp.innerText = entry.text;
 
-      lapp.onclick = () => {
-        if (confirm('Vill du ta bort denna lapp?')) {
-          remove(ref(db, 'lappar/' + id));
-        }
-      };
+        const datum = document.createElement('div');
+        datum.className = 'datum';
+        datum.innerText = formatDate(entry.timestamp);
 
-      lista.appendChild(lapp);
-    };
+        lapp.appendChild(datum);
 
-    onChildAdded(refLappar, snapshot => {
-      const id = snapshot.key;
-      const data = snapshot.val();
-      if (kategorier.includes(data.kategori)) {
-        renderLapp(id, data);
+        lapp.onclick = () => {
+          if (confirm('Vill du ta bort denna lapp?')) {
+            remove(ref(database, 'lappar/' + id));
+          }
+        };
+
+        const lista = document.getElementById(entry.kategori + '-lista');
+        lista.appendChild(lapp);
       }
-    });
+    }
 
-    onChildRemoved(refLappar, snapshot => {
-      const id = snapshot.key;
-      const lapp = document.getElementById(id);
-      if (lapp) lapp.remove();
+    const lapparRef = ref(database, 'lappar');
+    onValue(lapparRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      renderLappar(data);
     });
 
     document.getElementById('laggTillBtn').onclick = () => {
@@ -174,13 +174,13 @@
         return;
       }
 
-      if (text) {
-        push(refLappar, {
+      if (text !== '') {
+        push(ref(database, 'lappar'), {
           text,
           kategori,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          pin: pin  // <-- Lägg till pin för att uppfylla Firebase-regeln
         });
-
         document.getElementById('inputText').value = '';
         document.getElementById('pin').value = '';
       }
