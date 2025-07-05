@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <title>VH Lagtavla 25/26</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lagtavla</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
       font-family: sans-serif;
-      background-image: url('B101F8AD-1C59-4261-949C-CB5CA4058A17.jpeg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    .header {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-      text-shadow: 2px 2px 4px #000;
-    }
-
-    .button-row {
-      margin-top: 120px;
+      background: #f4f4f4;
       display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
-
-    .button-row img {
-      width: 200px;
-      height: auto;
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+    .buttons img {
+      height: 80px;
       cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .buttons img:hover {
+      transform: scale(1.05);
+    }
+    .lapp {
+      max-width: 90%;
+      border: 2px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .lapp img {
+      max-width: 100%;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    LAGTAVLA<br>
-    VIF HERRAR S25/26
+
+  <h1>Lagtavla</h1>
+
+  <div class="buttons">
+    <a href="#forslag"><img src="forslag.PNG" alt="Förslag" /></a>
+    <a href="#ovrigt"><img src="ovrigt.PNG" alt="Övrigt" /></a>
+    <a href="#viktiga-datum"><img src="viktiga-datum.PNG" alt="Viktiga Datum" /></a>
   </div>
 
-  <div class="button-row">
-    <img src="47D14BE8-1968-41F0-A1ED-2921C4AC235E.png" alt="Förslag">
-    <img src="FFE6B523-B64B-4E2D-B5DE-4D7B3CC9CFB0.png" alt="Övrigt">
-    <img src="37B266CD-9F3A-49F1-8002-2B7EF2FA2E3A.png" alt="Viktiga datum">
+  <div class="lapp" id="forslag">
+    <h2>Förslag</h2>
+    <img src="lapp.PNG" alt="Lappinnehåll – Förslag" />
   </div>
+
+  <div class="lapp" id="ovrigt">
+    <h2>Övrigt</h2>
+    <img src="lapp.PNG" alt="Lappinnehåll – Övrigt" />
+  </div>
+
+  <div class="lapp" id="viktiga-datum">
+    <h2>Viktiga Datum</h2>
+    <img src="lapp.PNG" alt="Lappinnehåll – Viktiga datum" />
+  </div>
+
 </body>
 </html>
