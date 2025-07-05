@@ -2,29 +2,29 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lagtavla</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: white;
-      color: black;
+      font-family: sans-serif;
       text-align: center;
+      padding: 40px;
+      background: white;
     }
-    .header {
-      font-weight: bold;
-      font-size: 20px;
-      margin: 20px;
-      text-shadow: 2px 2px 3px gray;
+    h1 {
+      font-size: 24px;
+      text-shadow: 1px 1px 2px #aaa;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 20px;
-      padding: 20px;
+      margin-top: 40px;
     }
     .card {
-      border: 1px solid #ddd;
+      width: 140px;
+      border: 1px solid #ccc;
       padding: 10px;
     }
     .card img {
@@ -34,26 +34,23 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    LAGTAVLA<br />
-    VIF HERRAR S25/26
-  </div>
-  <div class="grid">
+  <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
+  <div class="container">
     <div class="card">
-      <div>Förslag</div>
-      <img src="forslag.PNG" alt="Förslag" />
+      <p>Förslag</p>
+      <img src="forslag.PNG" alt="Förslag">
     </div>
     <div class="card">
-      <div>Övrigt</div>
-      <img src="ovrigt.PNG" alt="Övrigt" />
+      <p>Övrigt</p>
+      <img src="ovrigt.PNG" alt="Övrigt">
     </div>
     <div class="card">
-      <div>Viktiga datum</div>
-      <img src="viktiga-datum.PNG" alt="Viktiga datum" />
+      <p>Viktiga datum</p>
+      <img src="viktiga-datum.PNG" alt="Viktiga datum">
     </div>
     <div class="card">
-      <div>Lapp</div>
-      <img src="lapp.PNG" alt="Lapp" />
+      <p>Lapp</p>
+      <img src="lapp.PNG" alt="Lapp">
     </div>
   </div>
 </body>
