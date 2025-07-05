@@ -56,7 +56,7 @@
     #input-container {
       margin-top: 20px;
     }
-    #inputText, #pin {
+    #inputText {
       padding: 10px;
       font-size: 16px;
       width: 60%;
@@ -89,7 +89,6 @@
 
   <div id="input-container">
     <input type="text" id="inputText" placeholder="Skriv din lapp här..."><br>
-    <input type="password" id="pin" placeholder="PIN-kod krävs (1234)"><br>
     <select id="kategori">
       <option value="forslag">Förslag</option>
       <option value="ovrigt">Övrigt</option>
@@ -115,76 +114,4 @@
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
-
-    const kategorier = ['forslag', 'ovrigt', 'datum'];
-
-    function formatDate(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleDateString('sv-SE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    function renderLappar(data) {
-      kategorier.forEach(kategori => {
-        const lista = document.getElementById(kategori + '-lista');
-        lista.innerHTML = '';
-      });
-
-      for (const id in data) {
-        const entry = data[id];
-        if (!kategorier.includes(entry.kategori)) continue;
-
-        const lapp = document.createElement('div');
-        lapp.className = 'etikett';
-        lapp.innerText = entry.text;
-
-        const datum = document.createElement('div');
-        datum.className = 'datum';
-        datum.innerText = formatDate(entry.timestamp);
-
-        lapp.appendChild(datum);
-
-        lapp.onclick = () => {
-          if (confirm('Vill du ta bort denna lapp?')) {
-            remove(ref(database, 'lappar/' + id));
-          }
-        };
-
-        const lista = document.getElementById(entry.kategori + '-lista');
-        lista.appendChild(lapp);
-      }
-    }
-
-    const lapparRef = ref(database, 'lappar');
-    onValue(lapparRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      renderLappar(data);
-    });
-
-    document.getElementById('laggTillBtn').onclick = () => {
-      const text = document.getElementById('inputText').value.trim();
-      const kategori = document.getElementById('kategori').value;
-      const pin = document.getElementById('pin').value.trim();
-
-      if (pin !== '1234') {
-        alert('Fel PIN-kod!');
-        return;
-      }
-
-      if (text !== '') {
-        push(ref(database, 'lappar'), {
-          text,
-          kategori,
-          timestamp: Date.now(),
-          pin: pin  // <-- Lägg till pin för att uppfylla Firebase-regeln
-        });
-        document.getElementById('inputText').value = '';
-        document.getElementById('pin').value = '';
-      }
-    };
-  </script>
-</body>
-</html>
+    const kategorier = ['forslag', 'ovrigt', 'datum']()
