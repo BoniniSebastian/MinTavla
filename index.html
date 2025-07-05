@@ -1,181 +1,127 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lagtavla VIF</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lagtavla – VIF Herrar</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-image: url('VIF HERRAR S2526.png');
+      margin: 0;
+      padding: 0;
+      background: url('https://i.imgur.com/IaQf3Rf.jpg') no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
       color: white;
       text-align: center;
-      padding: 20px;
     }
-    .rubrik {
-      font-size: 28px;
-      font-weight: bold;
-      text-shadow: 2px 2px 4px black;
-      margin-bottom: 30px;
-    }
-    .kategori-container {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-    .kategori {
-      width: 150px;
-    }
-    .etikettlista {
-      min-height: 100px;
-      padding: 10px;
-      border-radius: 10px;
-    }
-    .etikett {
-      background: white;
-      color: black;
-      padding: 8px;
-      margin: 5px;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .etikett:hover {
-      background-color: #ddd;
-    }
-    .datum {
-      font-size: 12px;
-      color: #ccc;
-      margin-top: 3px;
-    }
-    #input-container {
+    h1 {
       margin-top: 20px;
     }
-    #inputText {
+    .form-container {
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    input, select, button {
+      display: block;
+      margin: 10px auto;
       padding: 10px;
-      font-size: 16px;
-      width: 60%;
-      border-radius: 5px;
-      border: none;
-      margin-bottom: 10px;
+      width: 90%;
+      max-width: 500px;
     }
-    #kategori {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      margin-bottom: 10px;
+    .notes-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 30px auto;
+      max-width: 1000px;
     }
-    #laggTillBtn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
+    .note {
+      background-color: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      padding: 15px;
+      min-width: 150px;
+      max-width: 250px;
+      color: black;
     }
+    .note .category {
+      font-weight: bold;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+    .note .date {
+      font-size: 0.8em;
+      color: #555;
+    }
+    .kategori-Aktiviteter { color: #2b83ba; }
+    .kategori-ViktigaDatum { color: #d7191c; }
   </style>
 </head>
 <body>
-  <div class="rubrik">LAGTAVLA<br>VIF HERRAR S25/26</div>
+  <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
 
-  <div class="kategori-container">
-    <div class="kategori" id="forslag-lista"></div>
-    <div class="kategori" id="ovrigt-lista"></div>
-    <div class="kategori" id="datum-lista"></div>
+  <div class="form-container">
+    <input type="text" id="noteText" placeholder="Skriv din lapp här...">
+    <select id="noteCategory">
+      <option value="Aktiviteter">Aktiviteter</option>
+      <option value="ViktigaDatum">Viktiga datum</option>
+    </select>
+    <button onclick="addNote()">Lägg till lapp</button>
   </div>
 
-  <div id="input-container">
-    <input type="text" id="inputText" placeholder="Skriv din lapp här..."><br>
-    <select id="kategori">
-      <option value="forslag">Förslag</option>
-      <option value="ovrigt">Övrigt</option>
-      <option value="datum">Viktiga datum</option>
-    </select><br>
-    <button id="laggTillBtn">Lägg till lapp</button>
-  </div>
+  <div class="notes-container" id="notes"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
       authDomain: "vh1-lagtavla.firebaseapp.com",
       databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
       projectId: "vh1-lagtavla",
-      storageBucket: "vh1-lagtavla.firebasestorage.app",
+      storageBucket: "vh1-lagtavla.appspot.com",
       messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47",
-      measurementId: "G-JDFQWC97PS"
+      appId: "1:145946104646:web:75a48a1665198ae0644b47"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const kategorier = ['forslag', 'ovrigt', 'datum'];
-
-    function formatDate(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleDateString('sv-SE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    function renderLappar(data) {
-      kategorier.forEach(kategori => {
-        const lista = document.getElementById(kategori + '-lista');
-        lista.innerHTML = '';
+    function addNote() {
+      const text = document.getElementById('noteText').value;
+      const category = document.getElementById('noteCategory').value;
+      const date = new Date().toLocaleDateString('sv-SE', {
+        day: 'numeric', month: 'long', year: 'numeric'
       });
 
-      for (const id in data) {
-        const entry = data[id];
-        if (!kategorier.includes(entry.kategori)) continue;
+      if (text.trim() === '') return;
 
-        const lapp = document.createElement('div');
-        lapp.className = 'etikett';
-        lapp.innerText = entry.text;
+      db.ref('notes').push({
+        text,
+        category,
+        created: date
+      });
 
-        const datum = document.createElement('div');
-        datum.className = 'datum';
-        datum.innerText = formatDate(entry.timestamp);
-
-        lapp.appendChild(datum);
-
-        lapp.onclick = () => {
-          if (confirm('Vill du ta bort denna lapp?')) {
-            remove(ref(database, 'lappar/' + id));
-          }
-        };
-
-        const lista = document.getElementById(entry.kategori + '-lista');
-        lista.appendChild(lapp);
-      }
+      document.getElementById('noteText').value = '';
     }
 
-    const lapparRef = ref(database, 'lappar');
-    onValue(lapparRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      renderLappar(data);
+    db.ref('notes').on('value', snapshot => {
+      const container = document.getElementById('notes');
+      container.innerHTML = '';
+      const notes = snapshot.val();
+      if (!notes) return;
+      Object.entries(notes).reverse().forEach(([key, note]) => {
+        const div = document.createElement('div');
+        div.className = 'note';
+        const catClass = 'kategori-' + (note.category || '');
+        div.innerHTML = `
+          <div class="category ${catClass}">${note.category}</div>
+          <div>${note.text}</div>
+          <div class="date">Skapad ${note.created}</div>
+        `;
+        container.appendChild(div);
+      });
     });
-
-    document.getElementById('laggTillBtn').onclick = () => {
-      const text = document.getElementById('inputText').value.trim();
-      const kategori = document.getElementById('kategori').value;
-
-      if (text !== '') {
-        push(ref(database, 'lappar'), {
-          text,
-          kategori,
-          timestamp: Date.now()
-        });
-        document.getElementById('inputText').value = '';
-      }
-    };
   </script>
 </body>
 </html>
