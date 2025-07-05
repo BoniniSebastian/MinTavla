@@ -2,67 +2,59 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lagtavla</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: Arial, sans-serif;
+      background-color: white;
+      color: black;
+      text-align: center;
+    }
+    .header {
+      font-weight: bold;
+      font-size: 20px;
+      margin: 20px;
+      text-shadow: 2px 2px 3px gray;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
       padding: 20px;
     }
-    .buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-    .buttons img {
-      height: 80px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .buttons img:hover {
-      transform: scale(1.05);
-    }
-    .lapp {
-      max-width: 90%;
-      border: 2px solid #ccc;
-      background: #fff;
+    .card {
+      border: 1px solid #ddd;
       padding: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .lapp img {
-      max-width: 100%;
+    .card img {
+      width: 100%;
+      height: auto;
     }
   </style>
 </head>
 <body>
-
-  <h1>Lagtavla</h1>
-
-  <div class="buttons">
-    <a href="#forslag"><img src="forslag.PNG" alt="Förslag" /></a>
-    <a href="#ovrigt"><img src="ovrigt.PNG" alt="Övrigt" /></a>
-    <a href="#viktiga-datum"><img src="viktiga-datum.PNG" alt="Viktiga Datum" /></a>
+  <div class="header">
+    LAGTAVLA<br />
+    VIF HERRAR S25/26
   </div>
-
-  <div class="lapp" id="forslag">
-    <h2>Förslag</h2>
-    <img src="lapp.PNG" alt="Lappinnehåll – Förslag" />
+  <div class="grid">
+    <div class="card">
+      <div>Förslag</div>
+      <img src="forslag.PNG" alt="Förslag" />
+    </div>
+    <div class="card">
+      <div>Övrigt</div>
+      <img src="ovrigt.PNG" alt="Övrigt" />
+    </div>
+    <div class="card">
+      <div>Viktiga datum</div>
+      <img src="viktiga-datum.PNG" alt="Viktiga datum" />
+    </div>
+    <div class="card">
+      <div>Lapp</div>
+      <img src="lapp.PNG" alt="Lapp" />
+    </div>
   </div>
-
-  <div class="lapp" id="ovrigt">
-    <h2>Övrigt</h2>
-    <img src="lapp.PNG" alt="Lappinnehåll – Övrigt" />
-  </div>
-
-  <div class="lapp" id="viktiga-datum">
-    <h2>Viktiga Datum</h2>
-    <img src="lapp.PNG" alt="Lappinnehåll – Viktiga datum" />
-  </div>
-
 </body>
 </html>
