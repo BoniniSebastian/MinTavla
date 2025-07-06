@@ -1,148 +1,122 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lagtavla VIF Herrar S25/26</title>
+  <meta charset="UTF-8">
+  <title>Lagtavla - VIF Herrar S25/26</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #000 url('https://i.imgur.com/DGk0K8G.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      margin: 0;
-      padding: 0;
+      background-color: #000;
       color: white;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-
-    h1 {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .form-section {
-      margin-top: 20px;
-      background: rgba(0, 0, 0, 0.7);
       padding: 20px;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
-
-    input[type="text"], select {
+    h1, h2 {
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80vw;
+      max-width: 500px;
+      margin: 10px 0;
+    }
+    button {
       padding: 10px;
       margin: 5px;
-      width: 300px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: white;
-      color: black;
-      border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
-
     .note {
-      background-color: rgba(255, 255, 255, 0.9);
-      color: black;
+      background: #222;
       padding: 15px;
       margin: 10px;
-      border-radius: 8px;
+      border-radius: 5px;
       max-width: 500px;
+      width: 80vw;
     }
-
-    .note .category {
-      font-weight: bold;
-      margin-bottom: 5px;
+    .note small {
+      display: block;
+      font-size: 0.8em;
+      color: #aaa;
     }
-
-    .Aktiviteter {
-      color: #0055ff;
-    }
-
-    .ViktigaDatum {
-      color: #ff5500;
+    .section {
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
   <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
 
-  <div class="form-section">
-    <input type="text" id="noteText" placeholder="Skriv din lapp här...">
-    <input type="text" id="noteSubject" placeholder="Ämne (valfritt)">
-    <select id="noteCategory">
-      <option value="Aktiviteter">Aktiviteter</option>
-      <option value="ViktigaDatum">Viktiga datum</option>
-    </select>
-    <button onclick="addNote()">Lägg till lapp</button>
+  <input type="text" id="noteText" placeholder="Skriv din lapp här...">
+  <button onclick="addNote()">Lägg till lapp</button>
+
+  <div class="section">
+    <h2>Aktiva lappar</h2>
+    <div id="active-notes"></div>
   </div>
 
-  <div id="notesContainer"></div>
+  <div class="section">
+    <h2>Slutförda lappar</h2>
+    <div id="completed-notes"></div>
+  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script>
+    // Firebase config
     const firebaseConfig = {
-      apiKey: "DIN_API_KEY",
-      authDomain: "DIN_AUTH_DOMAIN",
-      databaseURL: "DIN_DATABASE_URL",
-      projectId: "DITT_PROJECT_ID",
-      storageBucket: "DITT_STORAGE_BUCKET",
-      messagingSenderId: "DIN_MSG_ID",
-      appId: "DIN_APP_ID"
+      databaseURL: "https://lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Lägg till ny lapp
     function addNote() {
       const text = document.getElementById("noteText").value.trim();
-      const subject = document.getElementById("noteSubject").value.trim();
-      const category = document.getElementById("noteCategory").value;
-      const createdAt = new Date().toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' });
-
       if (!text) return;
-
       const note = {
         text,
-        subject,
-        category,
-        createdAt
+        timestamp: Date.now(),
+        done: false
       };
-
       db.ref("notes").push(note);
       document.getElementById("noteText").value = "";
-      document.getElementById("noteSubject").value = "";
     }
 
+    // Markera som slutförd
+    function markAsDone(id) {
+      db.ref("notes/" + id).update({ done: true });
+    }
+
+    // Hämta och visa lappar
     db.ref("notes").on("value", snapshot => {
-      const notesContainer = document.getElementById("notesContainer");
-      notesContainer.innerHTML = "";
-      snapshot.forEach(childSnapshot => {
-        const note = childSnapshot.val();
+      const active = document.getElementById("active-notes");
+      const done = document.getElementById("completed-notes");
+      active.innerHTML = "";
+      done.innerHTML = "";
+
+      snapshot.forEach(child => {
+        const id = child.key;
+        const note = child.val();
         const div = document.createElement("div");
         div.className = "note";
-
-        const subjectLine = note.subject ? `<div><strong>${note.subject}</strong></div>` : "";
-        div.innerHTML = `
-          <div class="category ${note.category}">${note.category}</div>
-          ${subjectLine}
-          <div>${note.text}</div>
-          <div style="font-size: 0.8em; color: gray;">Skapad ${note.createdAt}</div>
-        `;
-        notesContainer.appendChild(div);
+        const date = new Date(note.timestamp).toLocaleDateString("sv-SE", {
+          day: 'numeric', month: 'short', year: 'numeric'
+        });
+        div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad ${date}</small>`;
+        if (!note.done) {
+          const btn = document.createElement("button");
+          btn.innerText = "Slutför";
+          btn.onclick = () => markAsDone(id);
+          div.appendChild(btn);
+          active.appendChild(div);
+        } else {
+          done.appendChild(div);
+        }
       });
     });
   </script>
 </body>
 </html>
-
