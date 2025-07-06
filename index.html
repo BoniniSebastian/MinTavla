@@ -34,6 +34,7 @@
       border-radius: 5px;
       max-width: 500px;
       width: 80vw;
+      position: relative;
     }
     .note small {
       display: block;
@@ -43,9 +44,22 @@
     .section {
       margin-top: 30px;
     }
+    .remove {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 3px 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <h1>Lagtavla</h1>
+
   <input type="text" id="noteText" placeholder="Skriv din lapp här...">
   <button onclick="addNote()">Lägg till lapp</button>
 
@@ -60,14 +74,12 @@
   </div>
 
   <script>
-    // Firebase config – rätt URL
     const firebaseConfig = {
-      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com"
+      databaseURL: "https://lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Lägg till ny lapp
     function addNote() {
       const text = document.getElementById("noteText").value.trim();
       if (!text) return;
@@ -80,12 +92,20 @@
       document.getElementById("noteText").value = "";
     }
 
-    // Markera som slutförd
-    function markAsDone(id) {
-      db.ref("notes/" + id).update({ done: true });
+    function completeNote(id) {
+      const name = prompt("Vem slutförde uppgiften?");
+      if (!name) return;
+      db.ref("notes/" + id).update({
+        done: true,
+        completedBy: name,
+        completedAt: Date.now()
+      });
     }
 
-    // Hämta och visa lappar
+    function deleteNote(id) {
+      db.ref("notes/" + id).remove();
+    }
+
     db.ref("notes").on("value", snapshot => {
       const active = document.getElementById("active-notes");
       const done = document.getElementById("completed-notes");
@@ -97,18 +117,33 @@
         const note = child.val();
         const div = document.createElement("div");
         div.className = "note";
-        const date = new Date(note.timestamp).toLocaleDateString("sv-SE", {
-          day: 'numeric', month: 'short', year: 'numeric'
-        });
-        div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad ${date}</small>`;
-        if (!note.done) {
-          const btn = document.createElement("button");
-          btn.innerText = "Slutför";
-          btn.onclick = () => markAsDone(id);
-          div.appendChild(btn);
-          active.appendChild(div);
-        } else {
+        const date = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+
+        let content = `<strong>${note.text}</strong><br><small>Skapad: ${date}</small>`;
+
+        if (note.done) {
+          const doneDate = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+          content += `<br><small>Utförd av: ${note.completedBy}</small>`;
+          content += `<br><small>Slutförd: ${doneDate}</small>`;
+          div.innerHTML = content;
+          const removeBtn = document.createElement("button");
+          removeBtn.innerText = "X";
+          removeBtn.className = "remove";
+          removeBtn.onclick = () => deleteNote(id);
+          div.appendChild(removeBtn);
           done.appendChild(div);
+        } else {
+          div.innerHTML = content;
+          const completeBtn = document.createElement("button");
+          completeBtn.innerText = "Slutför";
+          completeBtn.onclick = () => completeNote(id);
+          div.appendChild(completeBtn);
+          const removeBtn = document.createElement("button");
+          removeBtn.innerText = "X";
+          removeBtn.className = "remove";
+          removeBtn.onclick = () => deleteNote(id);
+          div.appendChild(removeBtn);
+          active.appendChild(div);
         }
       });
     });
