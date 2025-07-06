@@ -39,8 +39,8 @@
       width: 80vw;
       position: relative;
     }
-    .note.done-personal {
-      background-color: #145214;
+    .note.done {
+      background: #145214;
     }
     .note small {
       display: block;
@@ -49,6 +49,7 @@
     }
     .section {
       margin-top: 30px;
+      align-self: flex-start;
     }
     .delete-btn {
       position: absolute;
@@ -75,30 +76,11 @@
   </select>
   <button onclick="addNote()">Skapa uppgift</button>
 
-  <div class="section">
-    <h2>Alla uppgifter</h2>
-    <div id="Alla"></div>
-  </div>
-  <div class="section">
-    <h2>Milo</h2>
-    <div id="Milo"></div>
-  </div>
-  <div class="section">
-    <h2>Alice</h2>
-    <div id="Alice"></div>
-  </div>
-  <div class="section">
-    <h2>Sandra</h2>
-    <div id="Sandra"></div>
-  </div>
-  <div class="section">
-    <h2>Sibbe</h2>
-    <div id="Sibbe"></div>
-  </div>
-  <div class="section">
-    <h2>Slutförda uppgifter</h2>
-    <div id="completed-notes"></div>
-  </div>
+  <div class="section"><h2>Alla uppgifter</h2><div id="Alla"></div></div>
+  <div class="section"><h2>Milo</h2><div id="Milo"></div></div>
+  <div class="section"><h2>Alice</h2><div id="Alice"></div></div>
+  <div class="section"><h2>Sandra</h2><div id="Sandra"></div></div>
+  <div class="section"><h2>Sibbe</h2><div id="Sibbe"></div></div>
 
   <script>
     const firebaseConfig = {
@@ -150,13 +132,14 @@
     db.ref("notes").on("value", snapshot => {
       const personer = ["Alla", "Milo", "Alice", "Sandra", "Sibbe"];
       personer.forEach(p => document.getElementById(p).innerHTML = "");
-      document.getElementById("completed-notes").innerHTML = "";
 
       snapshot.forEach(child => {
         const id = child.key;
         const note = child.val();
         const div = document.createElement("div");
         div.className = "note";
+        if (note.done) div.classList.add("done");
+
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
         div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
 
@@ -171,24 +154,16 @@
           btn.innerText = "Slutför";
           btn.onclick = () => markAsDone(id, note);
           div.appendChild(btn);
-          document.getElementById(note.assignedTo).appendChild(div);
         } else {
-          const datum = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${datum})</small>`;
-
-          const openBtn = document.createElement("button");
-          openBtn.innerText = "Öppna upp igen";
-          openBtn.onclick = () => reopenNote(id);
-          div.appendChild(openBtn);
-          div.appendChild(deleteBtn);
-
-          if (note.assignedTo === "Alla") {
-            document.getElementById("completed-notes").appendChild(div);
-          } else {
-            div.classList.add("done-personal");
-            document.getElementById(note.assignedTo).appendChild(div);
-          }
+          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+          div.innerHTML += `<br><small>✅ Slutförd av: ${note.completedBy} (${slutford})</small>`;
+          const reopenBtn = document.createElement("button");
+          reopenBtn.innerText = "Öppna upp igen";
+          reopenBtn.onclick = () => reopenNote(id);
+          div.appendChild(reopenBtn);
         }
+
+        document.getElementById(note.assignedTo).appendChild(div);
       });
     });
   </script>
