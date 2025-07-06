@@ -11,10 +11,8 @@
       background-color: #000;
       color: white;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       padding: 20px;
+      margin: 0;
     }
     h1, h2 {
       margin-bottom: 10px;
@@ -27,28 +25,31 @@
     }
     button {
       padding: 10px;
-      margin: 5px;
+      margin: 5px 0;
       cursor: pointer;
     }
     .note {
       background: #222;
       padding: 15px;
-      margin: 10px;
+      margin: 10px 0;
       border-radius: 5px;
       max-width: 500px;
       width: 80vw;
       position: relative;
+    }
+    .note.done {
+      background: #144d14;
     }
     .note small {
       display: block;
       font-size: 0.8em;
       color: #aaa;
     }
-    .note.done {
-      background: #1d4425;
-    }
     .section {
       margin-top: 30px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .delete-btn {
       position: absolute;
@@ -63,7 +64,7 @@
   </style>
 </head>
 <body>
-  <h1>MIN TAVLA</h1>
+  <h1>Min tavla</h1>
 
   <input type="text" id="noteText" placeholder="Skriv...">
   <select id="assignedTo">
@@ -74,6 +75,7 @@
     <option value="Sibbe">Sibbe</option>
   </select>
   <button onclick="addNote()">Skapa uppgift</button>
+  <button onclick="location.reload()">🔄 Uppdatera</button>
 
   <div class="section">
     <h2>Alla uppgifter</h2>
@@ -96,13 +98,19 @@
     <div id="Sibbe"></div>
   </div>
   <div class="section">
-    <h2>Slutförda uppgifter (från Alla)</h2>
+    <h2>Slutförda uppgifter</h2>
     <div id="completed-notes"></div>
   </div>
 
   <script>
     const firebaseConfig = {
-      databaseURL: "https://lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
+      apiKey: "AIzaSyC4NwU8RZXXD7A", // dummy för syntax – du har redan rätt config
+      authDomain: "lagtavla.firebaseapp.com",
+      databaseURL: "https://lagtavla-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "lagtavla",
+      storageBucket: "lagtavla.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -133,14 +141,6 @@
       });
     }
 
-    function reopenNote(id) {
-      db.ref("notes/" + id).update({
-        done: false,
-        completedBy: "",
-        completedAt: null
-      });
-    }
-
     function deleteNote(id) {
       if (confirm("Vill du ta bort denna lapp?")) {
         db.ref("notes/" + id).remove();
@@ -156,10 +156,8 @@
         const id = child.key;
         const note = child.val();
         const div = document.createElement("div");
-        div.className = "note";
-        if (note.done && note.assignedTo !== "Alla") {
-          div.classList.add("done");
-        }
+        div.className = "note" + (note.done && note.assignedTo !== "Alla" ? " done" : "");
+
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
         div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
 
@@ -178,13 +176,7 @@
         } else {
           const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
           div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
-
-          const reopenBtn = document.createElement("button");
-          reopenBtn.innerText = "Öppna upp igen";
-          reopenBtn.onclick = () => reopenNote(id);
-          div.appendChild(reopenBtn);
           div.appendChild(deleteBtn);
-
           if (note.assignedTo === "Alla") {
             document.getElementById("completed-notes").appendChild(div);
           } else {
