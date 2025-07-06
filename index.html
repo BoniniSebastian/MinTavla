@@ -39,6 +39,9 @@
       width: 80vw;
       position: relative;
     }
+    .note.done-personal {
+      background-color: #145214;
+    }
     .note small {
       display: block;
       font-size: 0.8em;
@@ -60,7 +63,7 @@
   </style>
 </head>
 <body>
-  <h1>Min tavla</h1>
+  <h1>MIN TAVLA</h1>
 
   <input type="text" id="noteText" placeholder="Skriv...">
   <select id="assignedTo">
@@ -130,6 +133,14 @@
       });
     }
 
+    function reopenNote(id) {
+      db.ref("notes/" + id).update({
+        done: false,
+        completedBy: "",
+        completedAt: null
+      });
+    }
+
     function deleteNote(id) {
       if (confirm("Vill du ta bort denna lapp?")) {
         db.ref("notes/" + id).remove();
@@ -162,10 +173,21 @@
           div.appendChild(btn);
           document.getElementById(note.assignedTo).appendChild(div);
         } else {
-          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
+          const datum = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${datum})</small>`;
+
+          const openBtn = document.createElement("button");
+          openBtn.innerText = "Öppna upp igen";
+          openBtn.onclick = () => reopenNote(id);
+          div.appendChild(openBtn);
           div.appendChild(deleteBtn);
-          document.getElementById("completed-notes").appendChild(div);
+
+          if (note.assignedTo === "Alla") {
+            document.getElementById("completed-notes").appendChild(div);
+          } else {
+            div.classList.add("done-personal");
+            document.getElementById(note.assignedTo).appendChild(div);
+          }
         }
       });
     });
