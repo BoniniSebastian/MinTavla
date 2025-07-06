@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Saker att fixa - 100 poäng</title>
+  <title>Lagtavla</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,9 +15,6 @@
       flex-direction: column;
       align-items: center;
       padding: 20px;
-    }
-    h1, h2 {
-      margin-bottom: 10px;
     }
     input[type="text"] {
       padding: 10px;
@@ -49,8 +46,6 @@
   </style>
 </head>
 <body>
-  <h1>LAGTAVLA<br>VIF HERRAR S25/26</h1>
-
   <input type="text" id="noteText" placeholder="Skriv din lapp här...">
   <button onclick="addNote()">Lägg till lapp</button>
 
@@ -65,9 +60,9 @@
   </div>
 
   <script>
-    // Firebase config
+    // Firebase config – rätt URL
     const firebaseConfig = {
-      databaseURL: "https://lagtavla-default-rtdb.europe-west1.firebasedatabase.app"
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -120,5 +115,3 @@
   </script>
 </body>
 </html>
-<!-- rebuild trigger -->
-
