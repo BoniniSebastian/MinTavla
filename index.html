@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Min tavla</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="firebase-config.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -85,8 +81,7 @@
     }
 
     .delete-btn {
-      margin-right: auto;
-      margin-left: 0;
+      margin-left: 10px;
       cursor: pointer;
       font-size: 18px;
     }
@@ -117,31 +112,115 @@
     .links a:hover {
       text-decoration: underline;
     }
-
-    .refresh-link {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-weight: bold;
-      color: white;
-      text-decoration: underline;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
   <div class="overlay"></div>
   <div class="container">
     <h1>Min tavla</h1>
-    <a class="refresh-link" onclick="window.location.reload()">Uppdatera</a>
     <input type="text" id="noteInput" placeholder="Skriv uppgift...">
-    <select id="filterSelect">
+    <select id="categorySelect">
       <option value="Alla">Alla</option>
+      <option value="Milo">Milo</option>
+      <option value="Alice">Alice</option>
+      <option value="Sandra">Sandra</option>
+      <option value="Sibbe">Sibbe</option>
     </select>
-    <button onclick="addNote()">+</button>
-    <div class="links" id="categoryLinks"></div>
+    <button id="addNote">+</button>
+    <a href="#" id="refresh" style="float: right; margin-top: 10px; display: inline-block; font-size: 14px;">Uppdatera</a>
+
+    <div class="links">
+      <a href="#" class="filter" data-filter="Milo">Milo (<span id="count-Milo">0</span>)</a>
+      <a href="#" class="filter" data-filter="Alice">Alice (<span id="count-Alice">0</span>)</a>
+      <a href="#" class="filter" data-filter="Sandra">Sandra (<span id="count-Sandra">0</span>)</a>
+      <a href="#" class="filter" data-filter="Sibbe">Sibbe (<span id="count-Sibbe">0</span>)</a>
+      <br>
+      <a href="#" class="filter" data-filter="Alla">Alla uppgifter (<span id="count-All">0</span>)</a>
+      <a href="#" class="filter" data-filter="Slutförda">Slutförda (<span id="count-Done">0</span>)</a>
+    </div>
+
     <div id="noteList"></div>
   </div>
-  <script src="script.js"></script>
+
+  <script>
+    const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+    const noteList = document.getElementById('noteList');
+    const input = document.getElementById('noteInput');
+    const select = document.getElementById('categorySelect');
+
+    function renderNotes(filter = "Alla") {
+      noteList.innerHTML = '';
+      const filtered = notes.filter(note => filter === "Alla" || note.category === filter);
+
+      filtered.forEach(note => {
+        const div = document.createElement('div');
+        div.className = 'note';
+        if (note.category === "Obs!") div.classList.add('small');
+
+        div.innerHTML = `<div><strong class="${note.done ? 'text-done' : ''}">${note.text}</strong><br><small>Skapad: ${note.date}</small></div>
+        <div>
+          <span class="toggle-done">${note.done ? '✔️' : '⭕'}</span>
+          <span class="delete-btn">🗑️</span>
+        </div>`;
+
+        div.querySelector('.toggle-done').onclick = () => {
+          note.done = !note.done;
+          save();
+        };
+
+        div.querySelector('.delete-btn').onclick = () => {
+          notes.splice(notes.indexOf(note), 1);
+          save();
+        };
+
+        noteList.appendChild(div);
+      });
+
+      updateCounters();
+    }
+
+    function save() {
+      localStorage.setItem('notes', JSON.stringify(notes));
+      renderNotes(select.value);
+    }
+
+    document.getElementById('addNote').onclick = () => {
+      const text = input.value.trim();
+      if (!text) return;
+
+      notes.push({
+        text,
+        category: select.value,
+        date: new Date().toLocaleDateString('sv-SE', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }),
+        done: false
+      });
+
+      input.value = '';
+      save();
+    };
+
+    document.querySelectorAll('.filter').forEach(link => {
+      link.onclick = () => {
+        renderNotes(link.dataset.filter);
+      };
+    });
+
+    document.getElementById('refresh').onclick = () => renderNotes(select.value);
+
+    function updateCounters() {
+      const categories = ["Milo", "Alice", "Sandra", "Sibbe"];
+      categories.forEach(cat => {
+        document.getElementById(`count-${cat}`).textContent = notes.filter(n => n.category === cat).length;
+      });
+      document.getElementById('count-All').textContent = notes.length;
+      document.getElementById('count-Done').textContent = notes.filter(n => n.done).length;
+    }
+
+    renderNotes();
+  </script>
 </body>
 </html>
