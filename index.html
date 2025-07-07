@@ -4,145 +4,53 @@
   <meta charset="UTF-8">
   <title>Min tavla</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-image: url('background.jpg');
-      background-size: cover;
-      background-attachment: fixed;
-      background-position: center;
-      color: white;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.3); /* Mörk overlay */
-      z-index: -1;
-    }
-
-    h1 {
-      margin-left: 20px;
-      display: inline-block;
-    }
-
-    .add-btn {
-      font-size: 32px;
-      font-weight: bold;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 10px;
-      vertical-align: middle;
-    }
-
-    #note-input {
-      margin: 20px;
-      padding: 10px;
-      width: 60%;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
-    }
-
-    #category-select {
-      padding: 10px;
-      font-weight: bold;
-      color: black;
-      border-radius: 20px;
-      border: none;
-      font-size: 14px;
-    }
-
-    .note {
-      background: rgba(0,0,0,0.5);
-      margin: 10px 20px;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      margin-right: 10px;
-    }
-
-    .toggle-done {
-      float: right;
-      margin-top: 6px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .section-title {
-      margin-left: 20px;
-      margin-top: 30px;
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    #update-btn {
-      position: absolute;
-      top: 20px;
-      right: 60px;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    .narrow {
-      width: 33% !important;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-left: 20px;
-    }
-
-    .top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 20px;
-    }
-  </style>
 </head>
 <body>
-  <div class="top-row">
+  <div class="overlay"></div>
+  <div class="container">
     <h1>Min tavla</h1>
-    <button id="update-btn">Uppdatera</button>
+    <div class="input-row">
+      <input id="noteInput" type="text" placeholder="Skriv...">
+      <select id="assignedTo">
+        <option value="Alla">Alla</option>
+        <option value="Milo">Milo</option>
+        <option value="Alice">Alice</option>
+        <option value="Sandra">Sandra</option>
+        <option value="Sibbe">Sibbe</option>
+        <option value="Kom ihåg!">Kom ihåg!</option>
+      </select>
+    </div>
+    <div class="plus-button" id="createNote">+</div>
+    <div class="category-links">
+      <a href="#Milo">Milo (<span id="count-Milo">0</span>)</a>
+      <a href="#Alice">Alice (<span id="count-Alice">0</span>)</a>
+      <a href="#Sandra">Sandra (<span id="count-Sandra">0</span>)</a>
+      <a href="#Sibbe">Sibbe (<span id="count-Sibbe">0</span>)</a>
+      <a href="#Alla">Alla uppgifter (<span id="count-All">0</span>)</a>
+      <a href="#Slutförda">Slutförda (<span id="count-Slutförda">0</span>)</a>
+    </div>
+
+    <h2 id="Kom ihåg!">Kom ihåg!</h2>
+    <div id="Kom ihåg!-notes" class="notes-section small"></div>
+
+    <h2 id="Milo">Milo</h2>
+    <div id="Milo-notes" class="notes-section"></div>
+
+    <h2 id="Alice">Alice</h2>
+    <div id="Alice-notes" class="notes-section"></div>
+
+    <h2 id="Sandra">Sandra</h2>
+    <div id="Sandra-notes" class="notes-section"></div>
+
+    <h2 id="Sibbe">Sibbe</h2>
+    <div id="Sibbe-notes" class="notes-section"></div>
+
+    <h2 id="Alla">Alla uppgifter <a href="#Slutförda" class="done-link">Slutförda (<span id="count-Slutförda">0</span>)</a></h2>
+    <div id="Alla-notes" class="notes-section"></div>
+
+    <h2 id="Slutförda">Slutförda uppgifter</h2>
+    <div id="completed-notes" class="notes-section"></div>
   </div>
-
-  <div class="controls">
-    <input id="note-input" placeholder="Skriv...">
-    <select id="category-select">
-      <option>Alla</option>
-    </select>
-  </div>
-  <button class="add-btn" onclick="createNote()">+</button>
-
-  <div id="Kom ihåg!" class="section-title">Kom ihåg!</div>
-  <div id="Milo" class="section-title">Milo</div>
-  <div id="Alice" class="section-title">Alice</div>
-  <div id="Sandra" class="section-title">Sandra</div>
-  <div id="Sibbe" class="section-title">Sibbe</div>
-  <div id="Alla uppgifter" class="section-title">Alla uppgifter <a href="#" style="color: lightblue; font-weight: normal; font-size: 14px;">Slutförda (0)</a></div>
-  <div id="Slutförda uppgifter" class="section-title">Slutförda uppgifter</div>
-
-  <script>
-    function createNote() {
-      // din JavaScript här
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
