@@ -2,10 +2,11 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
   <link rel="stylesheet" href="style.css">
-  <script defer src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,18 +36,12 @@
       font-weight: bold;
     }
 
-    .top-bar {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
     input[type="text"] {
       padding: 10px;
       border-radius: 5px;
       border: none;
       width: 60%;
+      margin-right: 10px;
       font-size: 16px;
     }
 
@@ -57,35 +52,17 @@
       color: black;
     }
 
-    .add-button {
-      font-size: 28px;
+    button {
+      background: none;
+      border: none;
       font-weight: bold;
-      margin-left: 10px;
       color: white;
+      font-size: 24px;
       cursor: pointer;
     }
 
-    .links {
-      margin-top: 15px;
-      margin-bottom: 10px;
-    }
-
-    .links a {
-      color: #add8e6;
-      margin-right: 15px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .links a:hover {
-      text-decoration: underline;
-    }
-
-    .section-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 30px;
+    #noteList {
+      margin-top: 20px;
     }
 
     .note {
@@ -93,6 +70,7 @@
       padding: 10px;
       border-radius: 5px;
       margin-bottom: 10px;
+      position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -102,26 +80,52 @@
       width: 30%;
     }
 
-    .note-content {
-      text-align: left;
-      width: 100%;
-    }
-
     .note strong.text-done {
       color: #00FF00;
     }
 
     .delete-btn {
-      margin-left: 15px;
       margin-right: auto;
-      font-size: 18px;
+      margin-left: 0;
       cursor: pointer;
-      color: white;
+      font-size: 18px;
     }
 
     .toggle-done {
       font-size: 20px;
       margin-left: 10px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    .links {
+      margin: 10px 0;
+    }
+
+    .links a {
+      color: #add8e6;
+      margin-right: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .refresh-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-weight: bold;
+      color: white;
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -129,43 +133,15 @@
   <div class="overlay"></div>
   <div class="container">
     <h1>Min tavla</h1>
-    <div class="top-bar">
-      <input type="text" id="noteInput" placeholder="Skriv uppgift...">
-      <select id="categorySelect">
-        <option value="Alla">Alla</option>
-        <option value="Kom ihåg!">Kom ihåg!</option>
-        <option value="Milo">Milo</option>
-        <option value="Alice">Alice</option>
-        <option value="Sandra">Sandra</option>
-        <option value="Sibbe">Sibbe</option>
-      </select>
-      <span class="add-button" onclick="addNote()">+</span>
-    </div>
-
-    <div class="links">
-      <a href="#" onclick="filterByCategory('Milo')">Milo (x)</a>
-      <a href="#" onclick="filterByCategory('Alice')">Alice (x)</a>
-      <a href="#" onclick="filterByCategory('Sandra')">Sandra (x)</a>
-      <a href="#" onclick="filterByCategory('Sibbe')">Sibbe (x)</a>
-    </div>
-
-    <div class="section-title">Kom ihåg!</div>
-    <div id="komIhag" class="noteList"></div>
-
-    <div class="section-title">Milo</div>
-    <div id="milo" class="noteList"></div>
-
-    <div class="section-title">Alice</div>
-    <div id="alice" class="noteList"></div>
-
-    <div class="section-title">Sandra</div>
-    <div id="sandra" class="noteList"></div>
-
-    <div class="section-title">Sibbe</div>
-    <div id="sibbe" class="noteList"></div>
-
-    <div class="section-title">Alla uppgifter</div>
+    <a class="refresh-link" onclick="window.location.reload()">Uppdatera</a>
+    <input type="text" id="noteInput" placeholder="Skriv uppgift...">
+    <select id="filterSelect">
+      <option value="Alla">Alla</option>
+    </select>
+    <button onclick="addNote()">+</button>
+    <div class="links" id="categoryLinks"></div>
     <div id="noteList"></div>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>
