@@ -13,6 +13,7 @@
       background-size: cover;
       color: white;
     }
+
     .overlay {
       position: absolute;
       top: 0;
@@ -22,13 +23,16 @@
       background: rgba(0, 0, 0, 0.4);
       z-index: -1;
     }
+
     .container {
       padding: 20px;
     }
+
     h1 {
       font-size: 28px;
       font-weight: bold;
     }
+
     input[type="text"] {
       padding: 10px;
       border-radius: 5px;
@@ -37,12 +41,14 @@
       margin-right: 10px;
       font-size: 16px;
     }
+
     select {
       padding: 10px;
       border-radius: 10px;
       font-weight: bold;
       color: black;
     }
+
     button {
       background: none;
       border: none;
@@ -51,6 +57,11 @@
       font-size: 24px;
       cursor: pointer;
     }
+
+    #noteList {
+      margin-top: 20px;
+    }
+
     .note {
       background: rgba(0, 0, 0, 0.7);
       padding: 10px;
@@ -61,29 +72,36 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .note.small {
       width: 30%;
     }
+
     .note strong.text-done {
       color: #00FF00;
     }
+
     .delete-btn {
       margin-left: 10px;
       cursor: pointer;
       font-size: 18px;
     }
+
     .toggle-done {
       font-size: 20px;
       margin-left: 10px;
     }
+
     .section-title {
       font-size: 20px;
       font-weight: bold;
       margin-top: 30px;
     }
+
     .links {
       margin: 10px 0;
     }
+
     .links a {
       color: #add8e6;
       margin-right: 10px;
@@ -91,65 +109,36 @@
       font-weight: bold;
       font-size: 14px;
     }
+
     .links a:hover {
       text-decoration: underline;
-    }
-    .refresh-link {
-      position: absolute;
-      right: 20px;
-      top: 20px;
-      font-size: 14px;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="overlay"></div>
   <div class="container">
-    <h1>Min tavla <a class="refresh-link" href="" onclick="location.reload(); return false;">Uppdatera</a></h1>
+    <h1>Min tavla <a href="#" onclick="location.reload()" style="float:right; font-size: 14px; color: #ccc;">Uppdatera</a></h1>
     <input type="text" id="noteInput" placeholder="Skriv uppgift...">
     <select id="categorySelect">
       <option value="Alla">Alla</option>
+      <option value="Kom ihåg">Kom ihåg</option>
       <option value="Milo">Milo</option>
       <option value="Alice">Alice</option>
       <option value="Sandra">Sandra</option>
       <option value="Sibbe">Sibbe</option>
     </select>
     <button onclick="addNote()">+</button>
-
     <div class="links">
-      <a href="#" onclick="filterBy('Milo')">Milo (0)</a>
-      <a href="#" onclick="filterBy('Alice')">Alice (0)</a>
-      <a href="#" onclick="filterBy('Sandra')">Sandra (0)</a>
-      <a href="#" onclick="filterBy('Sibbe')">Sibbe (0)</a><br>
-      <a href="#" onclick="filterBy('Alla')">Alla uppgifter (0)</a>
-      <a href="#" onclick="filterBy('Slutförda')">Slutförda (0)</a>
+      <a href="#" onclick="filterNotes('Milo')">Milo (<span id="count-Milo">0</span>)</a>
+      <a href="#" onclick="filterNotes('Alice')">Alice (<span id="count-Alice">0</span>)</a>
+      <a href="#" onclick="filterNotes('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
+      <a href="#" onclick="filterNotes('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a><br>
+      <a href="#" onclick="filterNotes('Alla')">Alla uppgifter (<span id="count-All">0</span>)</a>
+      <a href="#" onclick="filterNotes('Slutförda')">Slutförda (<span id="count-Done">0</span>)</a>
     </div>
-
-    <div id="noteList">
-      <div id="kom-ihåg" class="section">
-        <div class="section-title">Kom ihåg</div>
-        <!-- notes for Kom ihåg -->
-      </div>
-      <div id="milo" class="section">
-        <div class="section-title">Milo</div>
-      </div>
-      <div id="alice" class="section">
-        <div class="section-title">Alice</div>
-      </div>
-      <div id="sandra" class="section">
-        <div class="section-title">Sandra</div>
-      </div>
-      <div id="sibbe" class="section">
-        <div class="section-title">Sibbe</div>
-      </div>
-      <div id="alla" class="section">
-        <div class="section-title">Alla uppgifter</div>
-      </div>
-      <div id="done" class="section">
-        <div class="section-title">Slutförda</div>
-      </div>
-    </div>
+    <div id="noteList"></div>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>
