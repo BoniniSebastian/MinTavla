@@ -40,8 +40,7 @@
       position: relative;
     }
     .note.done {
-      color: #4CAF50;
-      font-style: italic;
+      color: #0f0;
     }
     .note small {
       display: block;
@@ -125,6 +124,7 @@
       messagingSenderId: "145946104646",
       appId: "1:145946104646:web:75a48a1665198ae0644b47"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -170,7 +170,7 @@
         const id = child.key;
         const note = child.val();
         const div = document.createElement("div");
-        div.className = "note";
+        div.className = "note" + (note.done && note.assignedTo !== "Alla" ? " done" : "");
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
         div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
 
@@ -178,28 +178,32 @@
         deleteBtn.className = "delete-btn";
         deleteBtn.textContent = "❌";
         deleteBtn.onclick = () => deleteNote(id);
+        div.appendChild(deleteBtn);
 
-        if (note.done) {
-          div.classList.add("done");
-          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
-          div.appendChild(deleteBtn);
-
-          if (note.assignedTo === "Alla") {
-            document.getElementById("completed-notes").appendChild(div);
-            counters.Slutförda++;
-          } else {
-            document.getElementById(note.assignedTo).appendChild(div);
-            counters[note.assignedTo]++;
-          }
-        } else {
+        if (!note.done) {
           const btn = document.createElement("button");
           btn.innerText = "Slutför";
           btn.onclick = () => markAsDone(id, note);
           div.appendChild(btn);
+          const target = document.getElementById(note.assignedTo);
+          if (target) {
+            target.appendChild(div);
+            counters[note.assignedTo]++;
+          }
+        } else {
+          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
           div.appendChild(deleteBtn);
-          document.getElementById(note.assignedTo).appendChild(div);
-          counters[note.assignedTo]++;
+          if (note.assignedTo === "Alla") {
+            document.getElementById("completed-notes").appendChild(div);
+            counters.Slutförda++;
+          } else {
+            const target = document.getElementById(note.assignedTo);
+            if (target) {
+              target.appendChild(div);
+              counters[note.assignedTo]++;
+            }
+          }
         }
       });
 
