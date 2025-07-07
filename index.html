@@ -122,7 +122,8 @@
       projectId: "vh1-lagtavla",
       storageBucket: "vh1-lagtavla.appspot.com",
       messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47"
+      appId: "1:145946104646:web:75a48a1665198ae0644b47",
+      measurementId: "G-JDFQWC97PS"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -139,8 +140,12 @@
         completedBy: "",
         completedAt: null
       };
-      db.ref("notes").push(note);
-      document.getElementById("noteText").value = "";
+      db.ref("notes").push(note).then(() => {
+        document.getElementById("noteText").value = "";
+      }).catch(error => {
+        console.error("Fel vid sparande:", error);
+        alert("Kunde inte spara. Kontrollera internet eller Firebase-konfigurationen.");
+      });
     }
 
     function markAsDone(id, note) {
