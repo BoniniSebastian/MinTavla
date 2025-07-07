@@ -170,9 +170,10 @@
         const id = child.key;
         const note = child.val();
         const div = document.createElement("div");
-        div.className = "note" + (note.done && note.assignedTo !== "Alla" ? " done" : "");
+      div.className = "note";
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-        div.innerHTML = `<strong>${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
+        let noteTextClass = note.done ? 'text-done' : '';
+div.innerHTML = `<strong class="${noteTextClass}">${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
