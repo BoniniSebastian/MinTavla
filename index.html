@@ -2,8 +2,10 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,18 +37,21 @@
       border: none;
       margin-right: 10px;
       font-size: 16px;
-      max-width: 200px;
+      width: 60%;
     }
     select {
       padding: 10px;
       border-radius: 5px;
       font-size: 16px;
+      font-weight: bold;
+      color: black;
     }
     button {
       background: none;
       border: none;
       font-size: 24px;
       color: white;
+      font-weight: bold;
       cursor: pointer;
     }
     .section {
@@ -56,18 +61,14 @@
       background-color: rgba(0, 0, 0, 0.5);
       padding: 10px;
       border-radius: 5px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 50%;
+      margin: 5px;
+      display: inline-block;
+      vertical-align: top;
+      width: 45%;
     }
     .task.komihag {
       background-color: rgba(255, 255, 255, 0.2);
-      max-width: 33%;
-    }
-    .task span {
-      flex-grow: 1;
+      width: 30%;
     }
     .task.completed span {
       color: lightgreen;
@@ -77,8 +78,15 @@
       background: none;
       border: none;
       color: white;
-      font-size: 14px;
+      font-size: 18px;
       cursor: pointer;
+      float: right;
+    }
+    .group-box {
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
     .header {
       display: flex;
@@ -87,26 +95,11 @@
       margin-bottom: 10px;
     }
     .filter-links {
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-      gap: 10px;
-      margin-bottom: 10px;
+      margin: 10px 0;
     }
     .filter-links span {
-      color: white;
-      text-decoration: none;
-    }
-    .refresh {
-      float: right;
-      color: white;
-      cursor: pointer;
+      margin-right: 15px;
       font-weight: bold;
-    }
-    .group-box {
-      background-color: rgba(0, 0, 0, 0.3);
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -136,46 +129,56 @@
     </div>
 
     <div id="Kom ihåg" class="section"><h2>Kom ihåg</h2></div>
-
-    <div class="group-box" id="Milo" class="section"><h2>Milo</h2></div>
-    <div class="group-box" id="Alice" class="section"><h2>Alice</h2></div>
-    <div class="group-box" id="Sandra" class="section"><h2>Sandra</h2></div>
-    <div class="group-box" id="Sibbe" class="section"><h2>Sibbe</h2></div>
-
+    <div class="group-box" id="Milo"><h2>Milo</h2></div>
+    <div class="group-box" id="Alice"><h2>Alice</h2></div>
+    <div class="group-box" id="Sandra"><h2>Sandra</h2></div>
+    <div class="group-box" id="Sibbe"><h2>Sibbe</h2></div>
     <div id="Alla uppgifter" class="section"><h2>Alla uppgifter</h2></div>
     <div id="Slutförda" class="section"><h2>Slutförda</h2></div>
   </div>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.appspot.com",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function saveTasks() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-
-    function addTask() {
+    async function addTask() {
       const text = document.getElementById('newTask').value.trim();
       const category = document.getElementById('taskCategory').value;
       if (!text) return;
-      tasks.push({ text, category, completed: false });
-      saveTasks();
+      const task = {
+        text,
+        category,
+        completed: false,
+        timestamp: Date.now()
+      };
+      await db.ref('tasks').push(task);
       document.getElementById('newTask').value = '';
       renderTasks();
     }
 
-    function toggleComplete(index) {
-      tasks[index].completed = !tasks[index].completed;
-      saveTasks();
+    async function toggleComplete(id, current) {
+      await db.ref('tasks/' + id).update({ completed: !current });
       renderTasks();
     }
 
-    function deleteTask(index) {
-      tasks.splice(index, 1);
-      saveTasks();
+    async function deleteTask(id) {
+      await db.ref('tasks/' + id).remove();
       renderTasks();
     }
 
-    function renderTasks() {
+    async function renderTasks() {
+      const snapshot = await db.ref('tasks').once('value');
+      const data = snapshot.val() || {};
+
       const sections = ['Kom ihåg', 'Milo', 'Alice', 'Sandra', 'Sibbe', 'Alla uppgifter', 'Slutförda'];
       sections.forEach(id => {
         const el = document.getElementById(id);
@@ -184,18 +187,15 @@
 
       const counts = { Milo: 0, Alice: 0, Sandra: 0, Sibbe: 0 };
 
-      tasks.forEach((task, i) => {
+      Object.entries(data).forEach(([id, task]) => {
         const div = document.createElement('div');
         div.className = 'task' + (task.category === 'Kom ihåg' ? ' komihag' : '') + (task.completed ? ' completed' : '');
 
-        div.addEventListener('touchstart', (e) => {
-          div.dataset.touchStartX = e.changedTouches[0].screenX;
-        });
-
-        div.addEventListener('touchend', (e) => {
-          const deltaX = e.changedTouches[0].screenX - div.dataset.touchStartX;
-          if (Math.abs(deltaX) > 50) toggleComplete(i);
-        });
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.completed;
+        checkbox.onclick = () => toggleComplete(id, task.completed);
+        div.appendChild(checkbox);
 
         const span = document.createElement('span');
         span.textContent = task.text;
@@ -204,7 +204,7 @@
         const btn = document.createElement('button');
         btn.innerHTML = '🗑️';
         btn.className = 'delete-btn';
-        btn.onclick = () => deleteTask(i);
+        btn.onclick = () => deleteTask(id);
         div.appendChild(btn);
 
         if (task.completed && task.category !== 'Alla') {
