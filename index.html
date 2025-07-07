@@ -39,6 +39,8 @@
       padding: 10px;
       border-radius: 5px;
       font-size: 16px;
+      font-weight: bold;
+      color: black;
     }
     button {
       background: none;
@@ -46,6 +48,7 @@
       font-size: 24px;
       color: white;
       cursor: pointer;
+      font-weight: bold;
     }
     .section {
       margin-top: 20px;
@@ -56,26 +59,22 @@
       border-radius: 5px;
       margin-bottom: 10px;
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      flex-direction: column;
+      align-items: center;
     }
-    .task.completed span.task-text {
-      color: lightgreen;
-      text-decoration: line-through;
+    .task.completed .task-text {
+      color: #00FF00;
+      text-decoration: none;
     }
     .task-text {
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+      display: block;
     }
     .task-date {
+      display: block;
       font-size: 12px;
-      margin-top: 4px;
-      opacity: 0.7;
+      color: #ccc;
     }
     .delete-btn {
-      align-self: flex-end;
       background: none;
       border: none;
       color: white;
@@ -178,7 +177,6 @@
       const counts = { 'Milo': 0, 'Alice': 0, 'Sandra': 0, 'Sibbe': 0, 'Kom ihåg': 0, 'All': 0, 'Completed': 0 };
 
       tasks.forEach((task, i) => {
-        const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
         const visible = (!filter || filter === task.category || filter === 'Alla uppgifter' || (filter === 'Slutförda' && task.completed));
         if (!visible) return;
 
@@ -191,9 +189,9 @@
         content.onclick = () => toggleComplete(i);
         div.appendChild(content);
 
-        const date = document.createElement('div');
+        const date = document.createElement('span');
         date.className = 'task-date';
-        date.textContent = 'Skapad: ' + task.created;
+        date.textContent = `Skapad: ${task.created}`;
         div.appendChild(date);
 
         const btn = document.createElement('button');
@@ -202,9 +200,10 @@
         btn.onclick = () => deleteTask(i);
         div.appendChild(btn);
 
-        if (task.completed && filter !== 'Alla uppgifter') {
-          document.getElementById(task.category)?.appendChild(div);
+        if (task.completed && task.category === 'Alla') {
+          document.getElementById('Slutförda').appendChild(div);
         } else {
+          const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
           section.appendChild(div);
         }
 
