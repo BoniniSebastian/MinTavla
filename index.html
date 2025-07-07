@@ -2,6 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
   <style>
     body {
@@ -58,12 +59,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 50%;
+      max-width: 400px;
     }
-    #"Kom ihåg" .task {
-      background-color: rgba(255, 255, 255, 0.2);
-      max-width: 33%;
-      font-size: 14px;
+    .task.komihåg {
+      background-color: #2a4d4f;
+      max-width: 200px;
     }
     .task.completed span {
       color: lightgreen;
@@ -75,6 +75,9 @@
       color: white;
       font-size: 20px;
       cursor: pointer;
+    }
+    .checkbox {
+      margin-right: 10px;
     }
     .header {
       display: flex;
@@ -150,12 +153,7 @@
     }
 
     function toggleComplete(index) {
-      const task = tasks[index];
-      task.completed = !task.completed;
-      if (task.category === 'Alla' && task.completed) {
-        task.originalCategory = task.category;
-        task.category = 'Slutförda';
-      }
+      tasks[index].completed = !tasks[index].completed;
       saveTasks();
       renderTasks();
     }
@@ -182,10 +180,14 @@
         if (!visible) return;
 
         const div = document.createElement('div');
-        div.className = 'task' + (task.completed ? ' completed' : '');
+        div.className = 'task' + (task.completed ? ' completed' : '') + (task.category === 'Kom ihåg' ? ' komihåg' : '');
 
-        div.addEventListener('touchstart', handleTouchStart, false);
-        div.addEventListener('touchmove', handleTouchMove.bind(null, i), false);
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'checkbox';
+        checkbox.checked = task.completed;
+        checkbox.onchange = () => toggleComplete(i);
+        div.appendChild(checkbox);
 
         const content = document.createElement('span');
         content.textContent = task.text;
@@ -199,6 +201,8 @@
 
         if (task.completed && task.category !== 'Alla') {
           document.getElementById(task.category)?.appendChild(div);
+        } else if (task.completed) {
+          document.getElementById('Slutförda').appendChild(div);
         } else {
           section.appendChild(div);
         }
@@ -215,21 +219,6 @@
       document.getElementById('count-Kom ihåg').textContent = counts['Kom ihåg'] || 0;
       document.getElementById('count-All').textContent = counts.All || 0;
       document.getElementById('count-Completed').textContent = counts.Completed || 0;
-    }
-
-    let xStart = null;
-    function handleTouchStart(evt) {
-      xStart = evt.touches[0].clientX;
-    }
-
-    function handleTouchMove(index, evt) {
-      if (!xStart) return;
-      let xEnd = evt.touches[0].clientX;
-      let diff = xEnd - xStart;
-      if (Math.abs(diff) > 40) {
-        toggleComplete(index);
-        xStart = null;
-      }
     }
 
     renderTasks();
