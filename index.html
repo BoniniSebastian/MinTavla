@@ -56,14 +56,26 @@
       border-radius: 5px;
       margin-bottom: 10px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
+      flex-direction: column;
     }
-    .task.completed span {
+    .task.completed span.task-text {
       color: lightgreen;
       text-decoration: line-through;
     }
+    .task-text {
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .task-date {
+      font-size: 12px;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
     .delete-btn {
+      align-self: flex-end;
       background: none;
       border: none;
       color: white;
@@ -174,9 +186,15 @@
         div.className = 'task' + (task.completed ? ' completed' : '');
 
         const content = document.createElement('span');
-        content.textContent = task.text + "\nSkapad: " + task.created;
+        content.className = 'task-text';
+        content.textContent = task.text;
         content.onclick = () => toggleComplete(i);
         div.appendChild(content);
+
+        const date = document.createElement('div');
+        date.className = 'task-date';
+        date.textContent = 'Skapad: ' + task.created;
+        div.appendChild(date);
 
         const btn = document.createElement('button');
         btn.innerHTML = '🗑️';
