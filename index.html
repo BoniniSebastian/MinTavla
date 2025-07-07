@@ -2,7 +2,6 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
   <style>
     body {
@@ -49,53 +48,26 @@
       color: black;
     }
 
-    button {
+    .add-btn {
+      margin-left: 10px;
+      font-size: 24px;
+      font-weight: bold;
       background: none;
       border: none;
-      font-weight: bold;
       color: white;
-      font-size: 24px;
       cursor: pointer;
     }
 
-    #noteList {
-      margin-top: 20px;
-    }
-
-    .note {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .note.small {
-      width: 30%;
-    }
-
-    .note strong.text-done {
-      color: #00FF00;
-    }
-
-    .delete-btn {
-      margin-left: 10px;
-      cursor: pointer;
-      font-size: 18px;
-    }
-
-    .toggle-done {
-      font-size: 20px;
-      margin-left: 10px;
-    }
-
-    .section-title {
-      font-size: 20px;
+    .refresh {
+      float: right;
+      margin-top: -40px;
       font-weight: bold;
-      margin-top: 30px;
+      color: #add8e6;
+      text-decoration: none;
+    }
+
+    .refresh:hover {
+      text-decoration: underline;
     }
 
     .links {
@@ -113,27 +85,157 @@
     .links a:hover {
       text-decoration: underline;
     }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    .note {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .note.small {
+      width: 30%;
+    }
+
+    .note strong.text-done {
+      color: #00FF00;
+    }
+
+    .delete-btn {
+      margin-right: auto;
+      cursor: pointer;
+      font-size: 18px;
+      margin-left: 10px;
+    }
+
+    .note span {
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
   <div class="overlay"></div>
   <div class="container">
     <h1>Min tavla</h1>
-    <input type="text" placeholder="Skriv uppgift...">
-    <select>
-      <option>Alla</option>
-    </select>
-    <button>+</button>
-    <div class="links">
-      <a href="#">Milo (0)</a>
-      <a href="#">Alice (0)</a>
-      <a href="#">Sandra (0)</a>
-      <a href="#">Sibbe (0)</a>
-      <br>
-      <a href="#">Alla uppgifter (0)</a>
-      <a href="#">Slutförda (0)</a>
+    <a class="refresh" href="" onclick="window.location.reload(); return false;">Uppdatera</a>
+    <div>
+      <input type="text" id="noteInput" placeholder="Skriv uppgift...">
+      <select id="category">
+        <option value="Alla">Alla</option>
+        <option value="Milo">Milo</option>
+        <option value="Alice">Alice</option>
+        <option value="Sandra">Sandra</option>
+        <option value="Sibbe">Sibbe</option>
+      </select>
+      <button class="add-btn" onclick="addNote()">+</button>
     </div>
+
+    <div class="links">
+      <a href="#" onclick="filterNotes('Milo')">Milo (<span id="count-Milo">0</span>)</a>
+      <a href="#" onclick="filterNotes('Alice')">Alice (<span id="count-Alice">0</span>)</a>
+      <a href="#" onclick="filterNotes('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
+      <a href="#" onclick="filterNotes('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a>
+      <br>
+      <a href="#" onclick="filterNotes('Alla')">Alla uppgifter (<span id="count-All">0</span>)</a>
+      <a href="#" onclick="filterNotes('Slutförda')">Slutförda (<span id="count-Done">0</span>)</a>
+    </div>
+
     <div id="noteList"></div>
   </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.appspot.com",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const noteList = document.getElementById("noteList");
+    const noteInput = document.getElementById("noteInput");
+    const categorySelect = document.getElementById("category");
+
+    function addNote() {
+      const text = noteInput.value.trim();
+      const category = categorySelect.value;
+      if (text !== "") {
+        const noteRef = db.ref("notes").push();
+        noteRef.set({
+          text: text,
+          done: false,
+          timestamp: Date.now(),
+          category: category
+        });
+        noteInput.value = "";
+      }
+    }
+
+    function deleteNote(id) {
+      db.ref("notes/" + id).remove();
+    }
+
+    function toggleDone(id, currentStatus) {
+      db.ref("notes/" + id).update({ done: !currentStatus });
+    }
+
+    function filterNotes(filter) {
+      const notes = document.querySelectorAll(".note");
+      notes.forEach(note => {
+        const cat = note.getAttribute("data-category");
+        const done = note.getAttribute("data-done") === "true";
+        if (filter === "Alla") {
+          note.style.display = "flex";
+        } else if (filter === "Slutförda") {
+          note.style.display = done ? "flex" : "none";
+        } else {
+          note.style.display = cat === filter ? "flex" : "none";
+        }
+      });
+    }
+
+    db.ref("notes").on("value", snapshot => {
+      noteList.innerHTML = "";
+      const counts = { Milo: 0, Alice: 0, Sandra: 0, Sibbe: 0, All: 0, Done: 0 };
+      snapshot.forEach(child => {
+        const note = child.val();
+        const id = child.key;
+        const div = document.createElement("div");
+        div.className = "note" + (note.category === "Kom ihåg!" ? " small" : "");
+        div.setAttribute("data-category", note.category);
+        div.setAttribute("data-done", note.done);
+        const text = note.done ? `<strong class='text-done'>${note.text}</strong>` : note.text;
+        div.innerHTML = `
+          <span class="delete-btn" onclick="deleteNote('${id}')">🗑️</span>
+          <span onclick="toggleDone('${id}', ${note.done})">${text}<br><small>Skapad: ${new Date(note.timestamp).toLocaleDateString('sv-SE')}</small></span>
+        `;
+        noteList.appendChild(div);
+        if (!note.done) counts[note.category] = (counts[note.category] || 0) + 1;
+        if (!note.done) counts.All++;
+        if (note.done) counts.Done++;
+      });
+      document.getElementById("count-Milo").textContent = counts.Milo || 0;
+      document.getElementById("count-Alice").textContent = counts.Alice || 0;
+      document.getElementById("count-Sandra").textContent = counts.Sandra || 0;
+      document.getElementById("count-Sibbe").textContent = counts.Sibbe || 0;
+      document.getElementById("count-All").textContent = counts.All;
+      document.getElementById("count-Done").textContent = counts.Done;
+    });
+  </script>
 </body>
 </html>
