@@ -26,11 +26,6 @@
       height: 60px;
       font-size: 16px;
     }
-
-.text-done {
-  color: #0f0;
-}
-    
     button {
       padding: 10px;
       margin: 5px;
@@ -44,7 +39,7 @@
       max-width: 500px;
       position: relative;
     }
-    .note.done {
+    .note .text-done {
       color: #0f0;
     }
     .note small {
@@ -58,18 +53,31 @@
     .delete-btn {
       position: absolute;
       top: 5px;
-      right: 10px;
-      background: red;
+      left: 10px;
+      background: none;
       border: none;
-      color: white;
-      font-weight: bold;
+      color: red;
+      font-size: 18px;
       cursor: pointer;
+    }
+    .toggle-done {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
     }
     .nav {
       display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+    .nav-row {
+      display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
     }
     .nav a {
       color: #0af;
@@ -149,14 +157,22 @@
       document.getElementById("noteText").value = "";
     }
 
-    function markAsDone(id, note) {
-      let namn = note.assignedTo === "Alla" ? prompt("Vem slutförde uppgiften?") : note.assignedTo;
-      if (!namn) return;
-      db.ref("notes/" + id).update({
-        done: true,
-        completedBy: namn,
-        completedAt: Date.now()
-      });
+    function toggleDone(id, note) {
+      if (note.done) {
+        db.ref("notes/" + id).update({
+          done: false,
+          completedBy: "",
+          completedAt: null
+        });
+      } else {
+        let namn = note.assignedTo === "Alla" ? prompt("Vem slutförde uppgiften?") : note.assignedTo;
+        if (!namn) return;
+        db.ref("notes/" + id).update({
+          done: true,
+          completedBy: namn,
+          completedAt: Date.now()
+        });
+      }
     }
 
     function deleteNote(id) {
@@ -175,10 +191,10 @@
         const id = child.key;
         const note = child.val();
         const div = document.createElement("div");
-      div.className = "note";
+        div.className = "note";
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
         let noteTextClass = note.done ? 'text-done' : '';
-div.innerHTML = `<strong class="${noteTextClass}">${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
+        div.innerHTML = `<strong class="${noteTextClass}">${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
@@ -186,41 +202,44 @@ div.innerHTML = `<strong class="${noteTextClass}">${note.text}</strong><br><smal
         deleteBtn.onclick = () => deleteNote(id);
         div.appendChild(deleteBtn);
 
-        if (!note.done) {
-          const btn = document.createElement("button");
-          btn.innerText = "Slutför";
-          btn.onclick = () => markAsDone(id, note);
-          div.appendChild(btn);
+        const toggle = document.createElement("span");
+        toggle.className = "toggle-done";
+        toggle.innerText = note.done ? "🟢" : "⚪";
+        toggle.onclick = () => toggleDone(id, note);
+        div.appendChild(toggle);
+
+        if (note.done) {
+          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
+        }
+
+        // Placera rätt
+        if (note.done && note.assignedTo === "Alla") {
+          document.getElementById("completed-notes").appendChild(div);
+          counters.Slutförda++;
+        } else {
           const target = document.getElementById(note.assignedTo);
           if (target) {
             target.appendChild(div);
             counters[note.assignedTo]++;
-          }
-        } else {
-          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
-          div.appendChild(deleteBtn);
-          if (note.assignedTo === "Alla") {
-            document.getElementById("completed-notes").appendChild(div);
-            counters.Slutförda++;
-          } else {
-            const target = document.getElementById(note.assignedTo);
-            if (target) {
-              target.appendChild(div);
-              counters[note.assignedTo]++;
-            }
           }
         }
       });
 
       const nav = document.getElementById("navLinks");
       nav.innerHTML = `
-        <a onclick="document.getElementById('Alla').scrollIntoView()">Alla uppgifter (${counters.Alla})</a> |
-        <a onclick="document.getElementById('completed-notes').scrollIntoView()">Slutförda (${counters.Slutförda})</a><br>
-        <a onclick="document.getElementById('Milo').scrollIntoView()">Milo (${counters.Milo})</a> |
-        <a onclick="document.getElementById('Alice').scrollIntoView()">Alice (${counters.Alice})</a><br>
-        <a onclick="document.getElementById('Sandra').scrollIntoView()">Sandra (${counters.Sandra})</a> |
-        <a onclick="document.getElementById('Sibbe').scrollIntoView()">Sibbe (${counters.Sibbe})</a>
+        <div class="nav-row">
+          <a onclick="document.getElementById('Milo').scrollIntoView()">Milo (${counters.Milo})</a>
+          <a onclick="document.getElementById('Alice').scrollIntoView()">Alice (${counters.Alice})</a>
+        </div>
+        <div class="nav-row">
+          <a onclick="document.getElementById('Sandra').scrollIntoView()">Sandra (${counters.Sandra})</a>
+          <a onclick="document.getElementById('Sibbe').scrollIntoView()">Sibbe (${counters.Sibbe})</a>
+        </div>
+        <div class="nav-row">
+          <a onclick="document.getElementById('Alla').scrollIntoView()">Alla uppgifter (${counters.Alla})</a>
+          <a onclick="document.getElementById('completed-notes').scrollIntoView()">Slutförda (${counters.Slutförda})</a>
+        </div>
       `;
     });
   </script>
