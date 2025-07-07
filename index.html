@@ -13,132 +13,191 @@
       background-size: cover;
       color: white;
     }
-
     .overlay {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
       height: 100%;
+      width: 100%;
       background: rgba(0, 0, 0, 0.4);
-      z-index: -1;
+      pointer-events: none;
     }
-
     .container {
       padding: 20px;
     }
-
     h1 {
       font-size: 28px;
       font-weight: bold;
     }
-
     input[type="text"] {
       padding: 10px;
       border-radius: 5px;
       border: none;
-      width: 60%;
       margin-right: 10px;
       font-size: 16px;
     }
-
     select {
       padding: 10px;
-      border-radius: 10px;
-      font-weight: bold;
-      color: black;
-    }
-
-    button {
-      background: none;
+      border-radius: 5px;
       border: none;
-      font-weight: bold;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: transparent;
       color: white;
-      font-size: 24px;
+      border: none;
       cursor: pointer;
+      font-weight: bold;
     }
-
-    #noteList {
-      margin-top: 20px;
-    }
-
-    .note {
-      background: rgba(0, 0, 0, 0.7);
+    .task {
+      background-color: rgba(0, 0, 0, 0.4);
       padding: 10px;
       border-radius: 5px;
-      margin-bottom: 10px;
-      position: relative;
+      margin: 5px 0;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
-
-    .note.small {
-      width: 30%;
+    .task .text {
+      flex-grow: 1;
+      margin-left: 10px;
     }
-
-    .note strong.text-done {
-      color: #00FF00;
+    .task.completed .text {
+      color: lightgreen;
     }
-
+    .section {
+      margin-top: 20px;
+    }
     .delete-btn {
-      margin-left: 10px;
       cursor: pointer;
-      font-size: 18px;
+      margin-right: 10px;
     }
-
-    .toggle-done {
-      font-size: 20px;
-      margin-left: 10px;
+    .task-list {
+      margin-top: 10px;
     }
-
     .section-title {
       font-size: 20px;
       font-weight: bold;
-      margin-top: 30px;
-    }
-
-    .links {
-      margin: 10px 0;
-    }
-
-    .links a {
-      color: #add8e6;
-      margin-right: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .links a:hover {
-      text-decoration: underline;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>
-  <div class="container">
-    <h1>Min tavla <a href="#" onclick="location.reload()" style="float:right; font-size: 14px; color: #ccc;">Uppdatera</a></h1>
-    <input type="text" id="noteInput" placeholder="Skriv uppgift...">
-    <select id="categorySelect">
-      <option value="Alla">Alla</option>
-      <option value="Kom ihåg">Kom ihåg</option>
-      <option value="Milo">Milo</option>
-      <option value="Alice">Alice</option>
-      <option value="Sandra">Sandra</option>
-      <option value="Sibbe">Sibbe</option>
-    </select>
-    <button onclick="addNote()">+</button>
-    <div class="links">
-      <a href="#" onclick="filterNotes('Milo')">Milo (<span id="count-Milo">0</span>)</a>
-      <a href="#" onclick="filterNotes('Alice')">Alice (<span id="count-Alice">0</span>)</a>
-      <a href="#" onclick="filterNotes('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
-      <a href="#" onclick="filterNotes('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a><br>
-      <a href="#" onclick="filterNotes('Alla')">Alla uppgifter (<span id="count-All">0</span>)</a>
-      <a href="#" onclick="filterNotes('Slutförda')">Slutförda (<span id="count-Done">0</span>)</a>
-    </div>
-    <div id="noteList"></div>
+<div class="overlay"></div>
+<div class="container">
+  <h1>Min tavla</h1>
+  <input type="text" id="taskInput" placeholder="Skriv uppgift...">
+  <select id="userSelect">
+    <option value="Alla">Alla</option>
+    <option value="Milo">Milo</option>
+    <option value="Alice">Alice</option>
+    <option value="Sandra">Sandra</option>
+    <option value="Sibbe">Sibbe</option>
+    <option value="Kom ihåg">Kom ihåg</option>
+  </select>
+  <button onclick="addTask()">+</button>
+  <button onclick="loadTasks()" style="float:right">Uppdatera</button>
+
+  <div>
+    <a href="#" onclick="filterUser('Milo')">Milo (0)</a> 
+    <a href="#" onclick="filterUser('Alice')">Alice (0)</a> 
+    <a href="#" onclick="filterUser('Sandra')">Sandra (0)</a> 
+    <a href="#" onclick="filterUser('Sibbe')">Sibbe (0)</a>
+    <br>
+    <a href="#" onclick="filterSection('Alla uppgifter')">Alla uppgifter (0)</a> 
+    <a href="#" onclick="filterSection('Slutförda')">Slutförda (0)</a>
   </div>
-  <script src="script.js"></script>
+
+  <div id="taskSections"></div>
+</div>
+
+<script>
+  const taskSections = {
+    "Kom ihåg": [],
+    "Milo": [],
+    "Alice": [],
+    "Sandra": [],
+    "Sibbe": [],
+    "Alla uppgifter": [],
+    "Slutförda": []
+  };
+
+  function loadTasks() {
+    const all = JSON.parse(localStorage.getItem("tasks")) || [];
+    Object.keys(taskSections).forEach(key => taskSections[key] = []);
+    all.forEach(task => {
+      if (task.completed) {
+        taskSections["Slutförda"].push(task);
+      } else {
+        (taskSections[task.user] || taskSections["Alla uppgifter"]).push(task);
+        taskSections["Alla uppgifter"].push(task);
+      }
+    });
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const container = document.getElementById("taskSections");
+    container.innerHTML = "";
+    for (const [section, tasks] of Object.entries(taskSections)) {
+      if (section === "Slutförda" || section === "Alla uppgifter") continue;
+      const div = document.createElement("div");
+      div.className = "section";
+      div.innerHTML = `<div class='section-title'>${section}</div>`;
+      const list = document.createElement("div");
+      list.className = "task-list";
+      tasks.forEach((task, index) => {
+        const taskDiv = document.createElement("div");
+        taskDiv.className = `task ${task.completed ? 'completed' : ''}`;
+        taskDiv.innerHTML = `
+          <span class='delete-btn' onclick='deleteTask(${task.id})'>🗑️</span>
+          <span class='text'>${task.text}<br><small>Skapad: ${task.date}</small></span>`;
+        list.appendChild(taskDiv);
+      });
+      div.appendChild(list);
+      container.appendChild(div);
+    }
+  }
+
+  function addTask() {
+    const text = document.getElementById("taskInput").value;
+    const user = document.getElementById("userSelect").value;
+    if (!text) return;
+    const task = {
+      id: Date.now(),
+      text,
+      user,
+      date: new Date().toISOString().split("T")[0],
+      completed: false
+    };
+    const all = JSON.parse(localStorage.getItem("tasks")) || [];
+    all.push(task);
+    localStorage.setItem("tasks", JSON.stringify(all));
+    document.getElementById("taskInput").value = "";
+    loadTasks();
+  }
+
+  function deleteTask(id) {
+    let all = JSON.parse(localStorage.getItem("tasks")) || [];
+    all = all.filter(task => task.id !== id);
+    localStorage.setItem("tasks", JSON.stringify(all));
+    loadTasks();
+  }
+
+  function filterUser(user) {
+    document.getElementById("userSelect").value = user;
+    loadTasks();
+  }
+
+  function filterSection(section) {
+    // placeholder if needed later
+    loadTasks();
+  }
+
+  window.onload = loadTasks;
+</script>
 </body>
 </html>
