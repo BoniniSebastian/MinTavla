@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-  <!-- Stilmall -->
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,16 +33,20 @@
     h1 {
       font-size: 28px;
       font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
-    #noteText {
+    .top-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    input[type="text"] {
       padding: 10px;
       border-radius: 5px;
       border: none;
-      width: 40%;
+      width: 60%;
       font-size: 16px;
     }
 
@@ -55,60 +55,24 @@
       border-radius: 10px;
       font-weight: bold;
       color: black;
-      margin-left: 10px;
     }
 
-    #createBtn {
-      font-size: 24px;
+    .add-button {
+      font-size: 28px;
       font-weight: bold;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
       margin-left: 10px;
-    }
-
-    .note {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-
-    .note.small {
-      width: 30%;
-    }
-
-    .text-done {
-      color: #00FF00;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 5px;
-      left: 10px;
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .toggle-done {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      font-size: 20px;
+      color: white;
       cursor: pointer;
     }
 
     .links {
-      margin: 10px 0;
+      margin-top: 15px;
+      margin-bottom: 10px;
     }
 
     .links a {
       color: #add8e6;
-      margin-right: 10px;
+      margin-right: 15px;
       text-decoration: none;
       font-weight: bold;
       font-size: 14px;
@@ -117,149 +81,91 @@
     .links a:hover {
       text-decoration: underline;
     }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    .note {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .note.small {
+      width: 30%;
+    }
+
+    .note-content {
+      text-align: left;
+      width: 100%;
+    }
+
+    .note strong.text-done {
+      color: #00FF00;
+    }
+
+    .delete-btn {
+      margin-left: 15px;
+      margin-right: auto;
+      font-size: 18px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .toggle-done {
+      font-size: 20px;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="overlay"></div>
   <div class="container">
-    <h1>
-      Min tavla
-      <button id="createBtn">＋</button>
-    </h1>
-    <input type="text" id="noteText" placeholder="Skriv uppgift..." />
-    <select id="assignedTo">
-      <option value="Alla">Alla</option>
-      <option value="Milo">Milo</option>
-      <option value="Alice">Alice</option>
-      <option value="Sandra">Sandra</option>
-      <option value="Sibbe">Sibbe</option>
-      <option value="Kom ihåg!">Kom ihåg!</option>
-    </select>
+    <h1>Min tavla</h1>
+    <div class="top-bar">
+      <input type="text" id="noteInput" placeholder="Skriv uppgift...">
+      <select id="categorySelect">
+        <option value="Alla">Alla</option>
+        <option value="Kom ihåg!">Kom ihåg!</option>
+        <option value="Milo">Milo</option>
+        <option value="Alice">Alice</option>
+        <option value="Sandra">Sandra</option>
+        <option value="Sibbe">Sibbe</option>
+      </select>
+      <span class="add-button" onclick="addNote()">+</span>
+    </div>
 
-    <div class="links" id="navLinks"></div>
+    <div class="links">
+      <a href="#" onclick="filterByCategory('Milo')">Milo (x)</a>
+      <a href="#" onclick="filterByCategory('Alice')">Alice (x)</a>
+      <a href="#" onclick="filterByCategory('Sandra')">Sandra (x)</a>
+      <a href="#" onclick="filterByCategory('Sibbe')">Sibbe (x)</a>
+    </div>
 
-    <div id="Kom ihåg!"></div>
-    <div id="Milo"></div>
-    <div id="Alice"></div>
-    <div id="Sandra"></div>
-    <div id="Sibbe"></div>
-    <div id="Alla"></div>
-    <div id="completed-notes"></div>
+    <div class="section-title">Kom ihåg!</div>
+    <div id="komIhag" class="noteList"></div>
+
+    <div class="section-title">Milo</div>
+    <div id="milo" class="noteList"></div>
+
+    <div class="section-title">Alice</div>
+    <div id="alice" class="noteList"></div>
+
+    <div class="section-title">Sandra</div>
+    <div id="sandra" class="noteList"></div>
+
+    <div class="section-title">Sibbe</div>
+    <div id="sibbe" class="noteList"></div>
+
+    <div class="section-title">Alla uppgifter</div>
+    <div id="noteList"></div>
   </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
-      authDomain: "vh1-lagtavla.firebaseapp.com",
-      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
-      projectId: "vh1-lagtavla",
-      storageBucket: "vh1-lagtavla.appspot.com",
-      messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    function addNote() {
-      const text = document.getElementById("noteText").value.trim();
-      const assignedTo = document.getElementById("assignedTo").value;
-      if (!text) return;
-      const note = {
-        text,
-        assignedTo,
-        timestamp: Date.now(),
-        done: false,
-        completedBy: "",
-        completedAt: null
-      };
-      db.ref("notes").push(note);
-      document.getElementById("noteText").value = "";
-    }
-
-    function deleteNote(id) {
-      if (confirm("Ta bort uppgift?")) {
-        db.ref("notes/" + id).remove();
-      }
-    }
-
-    function toggleDone(id, note) {
-      db.ref("notes/" + id).update({
-        done: !note.done,
-        completedBy: note.done ? "" : note.assignedTo,
-        completedAt: note.done ? null : Date.now()
-      });
-    }
-
-    document.getElementById("createBtn").addEventListener("click", addNote);
-
-    db.ref("notes").on("value", snapshot => {
-      const personer = ["Kom ihåg!", "Milo", "Alice", "Sandra", "Sibbe", "Alla"];
-      const counters = { "Kom ihåg!": 0, Milo: 0, Alice: 0, Sandra: 0, Sibbe: 0, Alla: 0, Slutförda: 0 };
-
-      personer.forEach(p => document.getElementById(p).innerHTML = "");
-      document.getElementById("completed-notes").innerHTML = "";
-
-      snapshot.forEach(child => {
-        const id = child.key;
-        const note = child.val();
-        const div = document.createElement("div");
-        div.className = "note" + (note.assignedTo === "Kom ihåg!" ? " small" : "");
-
-        const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-
-        const title = document.createElement("strong");
-        if (note.done) title.className = "text-done";
-        title.innerText = note.text;
-
-        const dateInfo = document.createElement("small");
-        dateInfo.innerText = `Skapad: ${skapad}`;
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "delete-btn";
-        delBtn.innerText = "🗑️";
-        delBtn.onclick = () => deleteNote(id);
-
-        const toggle = document.createElement("span");
-        toggle.className = "toggle-done";
-        toggle.innerText = note.done ? "🟢" : "⚪";
-        toggle.onclick = async () => {
-          const snap = await db.ref("notes/" + id).once("value");
-          const latest = snap.val();
-          if (latest) toggleDone(id, latest);
-        };
-
-        div.appendChild(title);
-        div.appendChild(document.createElement("br"));
-        div.appendChild(dateInfo);
-        div.appendChild(delBtn);
-        div.appendChild(toggle);
-
-        if (note.done) {
-          const extra = document.createElement("small");
-          const slutdatum = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          extra.innerText = `Slutförd av: ${note.completedBy} (${slutdatum})`;
-          div.appendChild(document.createElement("br"));
-          div.appendChild(extra);
-        }
-
-        const placering = (note.done && note.assignedTo === "Alla") ? "completed-notes" : note.assignedTo;
-        if (document.getElementById(placering)) {
-          document.getElementById(placering).appendChild(div);
-          counters[placering]++;
-        }
-      });
-
-      document.getElementById("navLinks").innerHTML = `
-        <a onclick="document.getElementById('Milo').scrollIntoView()">Milo (${counters.Milo})</a>
-        <a onclick="document.getElementById('Alice').scrollIntoView()">Alice (${counters.Alice})</a>
-        <a onclick="document.getElementById('Sandra').scrollIntoView()">Sandra (${counters.Sandra})</a>
-        <a onclick="document.getElementById('Sibbe').scrollIntoView()">Sibbe (${counters.Sibbe})</a>
-        <br><br>
-        <a onclick="document.getElementById('Alla').scrollIntoView()">Alla uppgifter (${counters.Alla})</a>
-        <a onclick="document.getElementById('completed-notes').scrollIntoView()">Slutförda (${counters.Slutförda})</a>
-      `;
-    });
-  </script>
 </body>
 </html>
