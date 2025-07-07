@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Min tavla</title>
   <style>
     body {
@@ -35,6 +35,7 @@
       border: none;
       margin-right: 10px;
       font-size: 16px;
+      max-width: 200px;
     }
     select {
       padding: 10px;
@@ -59,11 +60,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 400px;
+      max-width: 50%;
     }
-    .task.komihåg {
-      background-color: #2a4d4f;
-      max-width: 200px;
+    .task.komihag {
+      background-color: rgba(255, 255, 255, 0.2);
+      max-width: 33%;
+    }
+    .task span {
+      flex-grow: 1;
     }
     .task.completed span {
       color: lightgreen;
@@ -73,11 +77,8 @@
       background: none;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 14px;
       cursor: pointer;
-    }
-    .checkbox {
-      margin-right: 10px;
     }
     .header {
       display: flex;
@@ -85,9 +86,14 @@
       gap: 10px;
       margin-bottom: 10px;
     }
-    .filter-links a {
+    .filter-links {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .filter-links span {
       color: white;
-      margin-right: 10px;
       text-decoration: none;
     }
     .refresh {
@@ -95,6 +101,12 @@
       color: white;
       cursor: pointer;
       font-weight: bold;
+    }
+    .group-box {
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -117,20 +129,19 @@
     <button onclick="addTask()">+</button>
 
     <div class="filter-links">
-      <a href="#" onclick="filterTasks('Milo')">Milo (<span id="count-Milo">0</span>)</a>
-      <a href="#" onclick="filterTasks('Alice')">Alice (<span id="count-Alice">0</span>)</a>
-      <a href="#" onclick="filterTasks('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
-      <a href="#" onclick="filterTasks('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a>
-      <a href="#" onclick="filterTasks('Kom ihåg')">Kom ihåg (<span id="count-Kom ihåg">0</span>)</a>
-      <a href="#" onclick="filterTasks('Alla uppgifter')">Alla uppgifter (<span id="count-All">0</span>)</a>
-      <a href="#" onclick="filterTasks('Slutförda')">Slutförda (<span id="count-Completed">0</span>)</a>
+      <span id="count-Milo-label">Milo (0)</span>
+      <span id="count-Alice-label">Alice (0)</span>
+      <span id="count-Sandra-label">Sandra (0)</span>
+      <span id="count-Sibbe-label">Sibbe (0)</span>
     </div>
 
     <div id="Kom ihåg" class="section"><h2>Kom ihåg</h2></div>
-    <div id="Milo" class="section"><h2>Milo</h2></div>
-    <div id="Alice" class="section"><h2>Alice</h2></div>
-    <div id="Sandra" class="section"><h2>Sandra</h2></div>
-    <div id="Sibbe" class="section"><h2>Sibbe</h2></div>
+
+    <div class="group-box" id="Milo" class="section"><h2>Milo</h2></div>
+    <div class="group-box" id="Alice" class="section"><h2>Alice</h2></div>
+    <div class="group-box" id="Sandra" class="section"><h2>Sandra</h2></div>
+    <div class="group-box" id="Sibbe" class="section"><h2>Sibbe</h2></div>
+
     <div id="Alla uppgifter" class="section"><h2>Alla uppgifter</h2></div>
     <div id="Slutförda" class="section"><h2>Slutförda</h2></div>
   </div>
@@ -164,34 +175,31 @@
       renderTasks();
     }
 
-    function filterTasks(category) {
-      renderTasks(category);
-    }
+    function renderTasks() {
+      const sections = ['Kom ihåg', 'Milo', 'Alice', 'Sandra', 'Sibbe', 'Alla uppgifter', 'Slutförda'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<h2>${id}</h2>`;
+      });
 
-    function renderTasks(filter = '') {
-      const sections = ['Milo', 'Alice', 'Sandra', 'Sibbe', 'Kom ihåg', 'Alla uppgifter', 'Slutförda'];
-      sections.forEach(section => document.getElementById(section).innerHTML = `<h2>${section}</h2>`);
-
-      const counts = { 'Milo': 0, 'Alice': 0, 'Sandra': 0, 'Sibbe': 0, 'Kom ihåg': 0, 'All': 0, 'Completed': 0 };
+      const counts = { Milo: 0, Alice: 0, Sandra: 0, Sibbe: 0 };
 
       tasks.forEach((task, i) => {
-        const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
-        const visible = (!filter || filter === task.category || filter === 'Alla uppgifter' || (filter === 'Slutförda' && task.completed));
-        if (!visible) return;
-
         const div = document.createElement('div');
-        div.className = 'task' + (task.completed ? ' completed' : '') + (task.category === 'Kom ihåg' ? ' komihåg' : '');
+        div.className = 'task' + (task.category === 'Kom ihåg' ? ' komihag' : '') + (task.completed ? ' completed' : '');
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'checkbox';
-        checkbox.checked = task.completed;
-        checkbox.onchange = () => toggleComplete(i);
-        div.appendChild(checkbox);
+        div.addEventListener('touchstart', (e) => {
+          div.dataset.touchStartX = e.changedTouches[0].screenX;
+        });
 
-        const content = document.createElement('span');
-        content.textContent = task.text;
-        div.appendChild(content);
+        div.addEventListener('touchend', (e) => {
+          const deltaX = e.changedTouches[0].screenX - div.dataset.touchStartX;
+          if (Math.abs(deltaX) > 50) toggleComplete(i);
+        });
+
+        const span = document.createElement('span');
+        span.textContent = task.text;
+        div.appendChild(span);
 
         const btn = document.createElement('button');
         btn.innerHTML = '🗑️';
@@ -201,24 +209,22 @@
 
         if (task.completed && task.category !== 'Alla') {
           document.getElementById(task.category)?.appendChild(div);
-        } else if (task.completed) {
+        } else if (task.completed && task.category === 'Alla') {
           document.getElementById('Slutförda').appendChild(div);
         } else {
+          const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
           section.appendChild(div);
         }
 
-        if (!task.completed) counts[task.category] = (counts[task.category] || 0) + 1;
-        if (task.completed) counts.Completed++;
-        counts.All++;
+        if (!task.completed && counts.hasOwnProperty(task.category)) {
+          counts[task.category]++;
+        }
       });
 
-      document.getElementById('count-Milo').textContent = counts.Milo || 0;
-      document.getElementById('count-Alice').textContent = counts.Alice || 0;
-      document.getElementById('count-Sandra').textContent = counts.Sandra || 0;
-      document.getElementById('count-Sibbe').textContent = counts.Sibbe || 0;
-      document.getElementById('count-Kom ihåg').textContent = counts['Kom ihåg'] || 0;
-      document.getElementById('count-All').textContent = counts.All || 0;
-      document.getElementById('count-Completed').textContent = counts.Completed || 0;
+      document.getElementById('count-Milo-label').textContent = `Milo (${counts.Milo})`;
+      document.getElementById('count-Alice-label').textContent = `Alice (${counts.Alice})`;
+      document.getElementById('count-Sandra-label').textContent = `Sandra (${counts.Sandra})`;
+      document.getElementById('count-Sibbe-label').textContent = `Sibbe (${counts.Sibbe})`;
     }
 
     renderTasks();
