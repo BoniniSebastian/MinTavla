@@ -188,63 +188,73 @@
       personer.forEach(p => document.getElementById(p).innerHTML = "");
       document.getElementById("completed-notes").innerHTML = "";
 
-      snapshot.forEach(child => {
-        const id = child.key;
-        const note = child.val();
-        const div = document.createElement("div");
-        div.className = "note";
-        const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-        let noteTextClass = note.done ? 'text-done' : '';
-        const title = document.createElement("strong");
-title.className = noteTextClass;
-title.innerText = note.text;
+     snapshot.forEach(child => {
+  const id = child.key;
+  const note = child.val();
+  const div = document.createElement("div");
+  div.className = "note";
 
-const dateInfo = document.createElement("small");
-dateInfo.innerText = `Skapad: ${skapad}`;
+  const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
 
-div.appendChild(title);
-div.appendChild(document.createElement("br"));
-div.appendChild(dateInfo);
+  const noteText = document.createElement("strong");
+  noteText.className = note.done ? "text-done" : "";
+  noteText.innerText = note.text;
 
+  const createdInfo = document.createElement("small");
+  createdInfo.innerText = `Skapad: ${skapad}`;
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-btn";
-        deleteBtn.textContent = "❌";
-        deleteBtn.onclick = () => deleteNote(id);
-        div.appendChild(deleteBtn);
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "delete-btn";
+  deleteBtn.textContent = "❌";
+  deleteBtn.onclick = () => deleteNote(id);
 
-        const toggle = document.createElement("span");
-        toggle.className = "toggle-done";
-        toggle.innerText = note.done ? "🟢" : "⚪";
-   toggle.onclick = async () => {
-  try {
-    const snap = await db.ref("notes/" + id).once("value");
-    const latestNote = snap.val();
-    if (!latestNote) return;
-    toggleDone(id, latestNote);
-  } catch (err) {
-    console.error("Kunde inte toggla not:", err);
+  const toggle = document.createElement("span");
+  toggle.className = "toggle-done";
+  toggle.innerText = note.done ? "🟢" : "⚪";
+  toggle.onclick = async () => {
+    try {
+      const snap = await db.ref("notes/" + id).once("value");
+      const latestNote = snap.val();
+      if (!latestNote) return;
+      toggleDone(id, latestNote);
+    } catch (err) {
+      console.error("Kunde inte toggla not:", err);
+    }
+  };
+
+  // Lägg knapparna överst
+  div.appendChild(deleteBtn);
+  div.appendChild(toggle);
+
+  // Lägg till text och skapad-info
+  div.appendChild(noteText);
+  div.appendChild(document.createElement("br"));
+  div.appendChild(createdInfo);
+
+  // Om slutförd, lägg till extra info
+  if (note.done) {
+    const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+    const extraInfo = document.createElement("small");
+    extraInfo.innerText = `Slutförd av: ${note.completedBy} (${slutford})`;
+    div.appendChild(document.createElement("br"));
+    div.appendChild(extraInfo);
   }
-};
-        div.appendChild(toggle);
 
-        if (note.done) {
-  const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-  const extraInfo = document.createElement("small");
-  extraInfo.innerText = `Slutförd av: ${note.completedBy} (${slutford})`;
-  div.appendChild(extraInfo);
-}
-        // Placera rätt
-        if (note.done && note.assignedTo === "Alla") {
-          document.getElementById("completed-notes").appendChild(div);
-          counters.Slutförda++;
-        } else {
-          const target = document.getElementById(note.assignedTo);
-          if (target) {
-            target.appendChild(div);
-            counters[note.assignedTo]++;
-          }
-        }
+  // Placera lappen i rätt sektion
+  if (note.done && note.assignedTo === "Alla") {
+    document.getElementById("completed-notes").appendChild(div);
+    counters.Slutförda++;
+  } else {
+    const target = document.getElementById(note.assignedTo);
+    if (target) {
+      target.appendChild(div);
+      counters[note.assignedTo]++;
+    }
+  }
       });
 
       const nav = document.getElementById("navLinks");
