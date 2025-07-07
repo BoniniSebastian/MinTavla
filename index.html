@@ -2,41 +2,136 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
-      authDomain: "vh1-lagtavla.firebaseapp.com",
-      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
-      projectId: "vh1-lagtavla",
-      storageBucket: "vh1-lagtavla.appspot.com",
-      messagingSenderId: "145946104646",
-      appId: "1:145946104646:web:75a48a1665198ae0644b47",
-      measurementId: "G-JDFQWC97PS"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
-  <script defer src="script.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: -1;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      width: 60%;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    select {
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: bold;
+      color: black;
+    }
+
+    button {
+      background: none;
+      border: none;
+      font-weight: bold;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    #noteList {
+      margin-top: 20px;
+    }
+
+    .note {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .note.small {
+      width: 30%;
+    }
+
+    .note strong.text-done {
+      color: #00FF00;
+    }
+
+    .delete-btn {
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .toggle-done {
+      font-size: 20px;
+      margin-left: 10px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    .links {
+      margin: 10px 0;
+    }
+
+    .links a {
+      color: #add8e6;
+      margin-right: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <div class="overlay"></div>
   <div class="container">
     <h1>Min tavla</h1>
-    <input type="text" id="noteInput" placeholder="Skriv uppgift...">
-    <select id="categorySelect"></select>
-    <button onclick="addNote()">+</button>
-    <a href="#" onclick="loadNotes()" style="float: right; font-weight: bold;">Uppdatera</a>
+    <input type="text" placeholder="Skriv uppgift...">
+    <select>
+      <option>Alla</option>
+    </select>
+    <button>+</button>
     <div class="links">
-      <a href="#" onclick="filterByCategory('Milo')">Milo (<span id="count-Milo">0</span>)</a>
-      <a href="#" onclick="filterByCategory('Alice')">Alice (<span id="count-Alice">0</span>)</a>
-      <a href="#" onclick="filterByCategory('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
-      <a href="#" onclick="filterByCategory('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a>
+      <a href="#">Milo (0)</a>
+      <a href="#">Alice (0)</a>
+      <a href="#">Sandra (0)</a>
+      <a href="#">Sibbe (0)</a>
       <br>
-      <a href="#" onclick="filterByCategory('Alla')">Alla uppgifter (<span id="count-All">0</span>)</a>
-      <a href="#" onclick="filterByDone(true)">Slutförda (<span id="count-Done">0</span>)</a>
+      <a href="#">Alla uppgifter (0)</a>
+      <a href="#">Slutförda (0)</a>
     </div>
     <div id="noteList"></div>
   </div>
