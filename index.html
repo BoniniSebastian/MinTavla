@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Min tavla</title>
-  <link rel="icon" href="data:,">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,22 +12,26 @@
       background-size: cover;
       color: white;
     }
+
     .overlay {
       position: absolute;
       top: 0;
       left: 0;
-      height: 100%;
       width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      pointer-events: none;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: -1;
     }
+
     .container {
       padding: 20px;
     }
+
     h1 {
       font-size: 28px;
       font-weight: bold;
     }
+
     input[type="text"] {
       padding: 10px;
       border-radius: 5px;
@@ -36,168 +39,225 @@
       margin-right: 10px;
       font-size: 16px;
     }
+
     select {
       padding: 10px;
       border-radius: 5px;
       border: none;
       font-size: 16px;
-      margin-right: 10px;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-      background-color: transparent;
-      color: white;
-      border: none;
-      cursor: pointer;
       font-weight: bold;
+      color: black;
     }
+
+    button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     .task {
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.5);
       padding: 10px;
+      margin-top: 10px;
       border-radius: 5px;
-      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task .left {
       display: flex;
       align-items: center;
-      justify-content: space-between;
     }
-    .task .text {
-      flex-grow: 1;
+
+    .task .left input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    .task .right {
+      display: flex;
+      align-items: center;
+    }
+
+    .task .right span {
       margin-left: 10px;
+      font-size: 12px;
     }
-    .task.completed .text {
+
+    .task.done {
       color: lightgreen;
     }
-    .section {
-      margin-top: 20px;
-    }
-    .delete-btn {
+
+    .task .delete {
       cursor: pointer;
       margin-right: 10px;
     }
-    .task-list {
-      margin-top: 10px;
-    }
-    .section-title {
-      font-size: 20px;
+
+    .filter-links a {
+      margin-right: 10px;
+      color: violet;
+      text-decoration: none;
       font-weight: bold;
-      margin-top: 20px;
+    }
+
+    .filter-links {
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
-<div class="overlay"></div>
-<div class="container">
-  <h1>Min tavla</h1>
-  <input type="text" id="taskInput" placeholder="Skriv uppgift...">
-  <select id="userSelect">
-    <option value="Alla">Alla</option>
-    <option value="Milo">Milo</option>
-    <option value="Alice">Alice</option>
-    <option value="Sandra">Sandra</option>
-    <option value="Sibbe">Sibbe</option>
-    <option value="Kom ihåg">Kom ihåg</option>
-  </select>
-  <button onclick="addTask()">+</button>
-  <button onclick="loadTasks()" style="float:right">Uppdatera</button>
+  <div class="overlay"></div>
+  <div class="container">
+    <h1>Min tavla</h1>
+    <input type="text" id="newTask" placeholder="Skriv uppgift...">
+    <select id="assignedTo">
+      <option value="Alla">Alla</option>
+      <option value="Milo">Milo</option>
+      <option value="Alice">Alice</option>
+      <option value="Sandra">Sandra</option>
+      <option value="Sibbe">Sibbe</option>
+    </select>
+    <button onclick="addTask()">+</button>
+    <a href="#" onclick="refreshTasks()" style="margin-left:20px; font-weight:bold; color:violet;">Uppdatera</a>
 
-  <div>
-    <a href="#" onclick="filterUser('Milo')">Milo (0)</a> 
-    <a href="#" onclick="filterUser('Alice')">Alice (0)</a> 
-    <a href="#" onclick="filterUser('Sandra')">Sandra (0)</a> 
-    <a href="#" onclick="filterUser('Sibbe')">Sibbe (0)</a>
-    <br>
-    <a href="#" onclick="filterSection('Alla uppgifter')">Alla uppgifter (0)</a> 
-    <a href="#" onclick="filterSection('Slutförda')">Slutförda (0)</a>
+    <div class="filter-links">
+      <a href="#" onclick="filterBy('Milo')">Milo (<span id="count-Milo">0</span>)</a>
+      <a href="#" onclick="filterBy('Alice')">Alice (<span id="count-Alice">0</span>)</a>
+      <a href="#" onclick="filterBy('Sandra')">Sandra (<span id="count-Sandra">0</span>)</a>
+      <a href="#" onclick="filterBy('Sibbe')">Sibbe (<span id="count-Sibbe">0</span>)</a>
+      <br>
+      <a href="#" onclick="filterBy('Alla')">Alla uppgifter (<span id="count-Alla">0</span>)</a>
+      <a href="#" onclick="filterBy('Slutförda')">Slutförda (<span id="count-Done">0</span>)</a>
+    </div>
+
+    <div id="sections">
+      <h3>Kom ihåg</h3>
+      <div id="section-Kom ihåg"></div>
+      <h3>Milo</h3>
+      <div id="section-Milo"></div>
+      <h3>Alice</h3>
+      <div id="section-Alice"></div>
+      <h3>Sandra</h3>
+      <div id="section-Sandra"></div>
+      <h3>Sibbe</h3>
+      <div id="section-Sibbe"></div>
+      <h3>Alla</h3>
+      <div id="section-Alla"></div>
+      <h3>Slutförda</h3>
+      <div id="section-Slutförda"></div>
+    </div>
   </div>
 
-  <div id="taskSections"></div>
-</div>
-
-<script>
-  const taskSections = {
-    "Kom ihåg": [],
-    "Milo": [],
-    "Alice": [],
-    "Sandra": [],
-    "Sibbe": [],
-    "Alla uppgifter": [],
-    "Slutförda": []
-  };
-
-  function loadTasks() {
-    const all = JSON.parse(localStorage.getItem("tasks")) || [];
-    Object.keys(taskSections).forEach(key => taskSections[key] = []);
-    all.forEach(task => {
-      if (task.completed) {
-        taskSections["Slutförda"].push(task);
-      } else {
-        (taskSections[task.user] || taskSections["Alla uppgifter"]).push(task);
-        taskSections["Alla uppgifter"].push(task);
-      }
-    });
-    renderTasks();
-  }
-
-  function renderTasks() {
-    const container = document.getElementById("taskSections");
-    container.innerHTML = "";
-    for (const [section, tasks] of Object.entries(taskSections)) {
-      if (section === "Slutförda" || section === "Alla uppgifter") continue;
-      const div = document.createElement("div");
-      div.className = "section";
-      div.innerHTML = `<div class='section-title'>${section}</div>`;
-      const list = document.createElement("div");
-      list.className = "task-list";
-      tasks.forEach((task, index) => {
-        const taskDiv = document.createElement("div");
-        taskDiv.className = `task ${task.completed ? 'completed' : ''}`;
-        taskDiv.innerHTML = `
-          <span class='delete-btn' onclick='deleteTask(${task.id})'>🗑️</span>
-          <span class='text'>${task.text}<br><small>Skapad: ${task.date}</small></span>`;
-        list.appendChild(taskDiv);
-      });
-      div.appendChild(list);
-      container.appendChild(div);
-    }
-  }
-
-  function addTask() {
-    const text = document.getElementById("taskInput").value;
-    const user = document.getElementById("userSelect").value;
-    if (!text) return;
-    const task = {
-      id: Date.now(),
-      text,
-      user,
-      date: new Date().toISOString().split("T")[0],
-      completed: false
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.appspot.com",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47"
     };
-    const all = JSON.parse(localStorage.getItem("tasks")) || [];
-    all.push(task);
-    localStorage.setItem("tasks", JSON.stringify(all));
-    document.getElementById("taskInput").value = "";
-    loadTasks();
-  }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  function deleteTask(id) {
-    let all = JSON.parse(localStorage.getItem("tasks")) || [];
-    all = all.filter(task => task.id !== id);
-    localStorage.setItem("tasks", JSON.stringify(all));
-    loadTasks();
-  }
+    function addTask() {
+      const text = document.getElementById('newTask').value;
+      const assigned = document.getElementById('assignedTo').value;
+      const task = {
+        text,
+        assignedTo: assigned,
+        done: false,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      db.ref('tasks').push(task);
+      document.getElementById('newTask').value = '';
+    }
 
-  function filterUser(user) {
-    document.getElementById("userSelect").value = user;
-    loadTasks();
-  }
+    function refreshTasks() {
+      db.ref('tasks').once('value', snapshot => {
+        const sections = {
+          'Kom ihåg': document.getElementById('section-Kom ihåg'),
+          'Milo': document.getElementById('section-Milo'),
+          'Alice': document.getElementById('section-Alice'),
+          'Sandra': document.getElementById('section-Sandra'),
+          'Sibbe': document.getElementById('section-Sibbe'),
+          'Alla': document.getElementById('section-Alla'),
+          'Slutförda': document.getElementById('section-Slutförda')
+        };
+        Object.values(sections).forEach(div => div.innerHTML = '');
+        const counts = {
+          'Milo': 0,
+          'Alice': 0,
+          'Sandra': 0,
+          'Sibbe': 0,
+          'Alla': 0,
+          'Done': 0
+        };
+        snapshot.forEach(child => {
+          const task = child.val();
+          const key = child.key;
+          const taskEl = document.createElement('div');
+          taskEl.className = 'task' + (task.done ? ' done' : '');
+          taskEl.innerHTML = `
+            <div class="left">
+              <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleDone('${key}', this.checked)">
+              ${task.text}<br><span>Skapad: ${task.createdAt}</span>
+            </div>
+            <div class="right">
+              <span class="delete" onclick="deleteTask('${key}')">🗑️</span>
+            </div>
+          `;
+          if (task.done) {
+            counts.Done++;
+            sections['Slutförda'].appendChild(taskEl);
+          } else {
+            counts[task.assignedTo] = (counts[task.assignedTo] || 0) + 1;
+            if (sections[task.assignedTo]) sections[task.assignedTo].appendChild(taskEl);
+            if (task.assignedTo === 'Alla') sections['Alla'].appendChild(taskEl);
+          }
+        });
+        document.getElementById('count-Milo').innerText = counts.Milo;
+        document.getElementById('count-Alice').innerText = counts.Alice;
+        document.getElementById('count-Sandra').innerText = counts.Sandra;
+        document.getElementById('count-Sibbe').innerText = counts.Sibbe;
+        document.getElementById('count-Alla').innerText = counts.Alla;
+        document.getElementById('count-Done').innerText = counts.Done;
+      });
+    }
 
-  function filterSection(section) {
-    // placeholder if needed later
-    loadTasks();
-  }
+    function deleteTask(key) {
+      db.ref('tasks/' + key).remove();
+      refreshTasks();
+    }
 
-  window.onload = loadTasks;
-</script>
+    function toggleDone(key, checked) {
+      db.ref('tasks/' + key + '/done').set(checked);
+      refreshTasks();
+    }
+
+    function filterBy(name) {
+      document.querySelectorAll('#sections > div').forEach(div => div.style.display = 'none');
+      document.querySelectorAll('#sections > h3').forEach(h => h.style.display = 'none');
+      if (name === 'Alla') {
+        document.querySelectorAll('#sections > div').forEach(div => div.style.display = 'block');
+        document.querySelectorAll('#sections > h3').forEach(h => h.style.display = 'block');
+      } else {
+        const section = document.getElementById('section-' + name);
+        if (section) {
+          section.style.display = 'block';
+          const header = section.previousElementSibling;
+          if (header && header.tagName === 'H3') header.style.display = 'block';
+        }
+      }
+    }
+
+    refreshTasks();
+  </script>
 </body>
 </html>
