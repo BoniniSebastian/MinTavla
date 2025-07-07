@@ -195,7 +195,17 @@
         div.className = "note";
         const skapad = new Date(note.timestamp).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
         let noteTextClass = note.done ? 'text-done' : '';
-        div.innerHTML = `<strong class="${noteTextClass}">${note.text}</strong><br><small>Skapad: ${skapad}</small>`;
+        const title = document.createElement("strong");
+title.className = noteTextClass;
+title.innerText = note.text;
+
+const dateInfo = document.createElement("small");
+dateInfo.innerText = `Skapad: ${skapad}`;
+
+div.appendChild(title);
+div.appendChild(document.createElement("br"));
+div.appendChild(dateInfo);
+
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-btn";
@@ -206,18 +216,24 @@
         const toggle = document.createElement("span");
         toggle.className = "toggle-done";
         toggle.innerText = note.done ? "🟢" : "⚪";
-        toggle.onclick = () => {
-  db.ref("notes/" + id).once("value").then(snap => {
-    toggleDone(id, snap.val());
-  });
+   toggle.onclick = async () => {
+  try {
+    const snap = await db.ref("notes/" + id).once("value");
+    const latestNote = snap.val();
+    if (!latestNote) return;
+    toggleDone(id, latestNote);
+  } catch (err) {
+    console.error("Kunde inte toggla not:", err);
+  }
 };
         div.appendChild(toggle);
 
         if (note.done) {
-          const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
-          div.innerHTML += `<br><small>Slutförd av: ${note.completedBy} (${slutford})</small>`;
-        }
-
+  const slutford = new Date(note.completedAt).toLocaleDateString("sv-SE", { day: 'numeric', month: 'short', year: 'numeric' });
+  const extraInfo = document.createElement("small");
+  extraInfo.innerText = `Slutförd av: ${note.completedBy} (${slutford})`;
+  div.appendChild(extraInfo);
+}
         // Placera rätt
         if (note.done && note.assignedTo === "Alla") {
           document.getElementById("completed-notes").appendChild(div);
