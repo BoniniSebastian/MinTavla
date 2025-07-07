@@ -39,8 +39,6 @@
       padding: 10px;
       border-radius: 5px;
       font-size: 16px;
-      font-weight: bold;
-      color: black;
     }
     button {
       background: none;
@@ -48,7 +46,6 @@
       font-size: 24px;
       color: white;
       cursor: pointer;
-      font-weight: bold;
     }
     .section {
       margin-top: 20px;
@@ -59,20 +56,18 @@
       border-radius: 5px;
       margin-bottom: 10px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      max-width: 50%;
     }
-    .task.completed .task-text {
-      color: #00FF00;
-      text-decoration: none;
+    #"Kom ihåg" .task {
+      background-color: rgba(255, 255, 255, 0.2);
+      max-width: 33%;
+      font-size: 14px;
     }
-    .task-text {
-      display: block;
-    }
-    .task-date {
-      display: block;
-      font-size: 12px;
-      color: #ccc;
+    .task.completed span {
+      color: lightgreen;
+      text-decoration: line-through;
     }
     .delete-btn {
       background: none;
@@ -148,14 +143,19 @@
       const text = document.getElementById('newTask').value.trim();
       const category = document.getElementById('taskCategory').value;
       if (!text) return;
-      tasks.push({ text, category, completed: false, created: new Date().toISOString().split('T')[0] });
+      tasks.push({ text, category, completed: false });
       saveTasks();
       document.getElementById('newTask').value = '';
       renderTasks();
     }
 
     function toggleComplete(index) {
-      tasks[index].completed = !tasks[index].completed;
+      const task = tasks[index];
+      task.completed = !task.completed;
+      if (task.category === 'Alla' && task.completed) {
+        task.originalCategory = task.category;
+        task.category = 'Slutförda';
+      }
       saveTasks();
       renderTasks();
     }
@@ -177,22 +177,19 @@
       const counts = { 'Milo': 0, 'Alice': 0, 'Sandra': 0, 'Sibbe': 0, 'Kom ihåg': 0, 'All': 0, 'Completed': 0 };
 
       tasks.forEach((task, i) => {
+        const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
         const visible = (!filter || filter === task.category || filter === 'Alla uppgifter' || (filter === 'Slutförda' && task.completed));
         if (!visible) return;
 
         const div = document.createElement('div');
         div.className = 'task' + (task.completed ? ' completed' : '');
 
-        const content = document.createElement('span');
-        content.className = 'task-text';
-        content.textContent = task.text;
-        content.onclick = () => toggleComplete(i);
-        div.appendChild(content);
+        div.addEventListener('touchstart', handleTouchStart, false);
+        div.addEventListener('touchmove', handleTouchMove.bind(null, i), false);
 
-        const date = document.createElement('span');
-        date.className = 'task-date';
-        date.textContent = `Skapad: ${task.created}`;
-        div.appendChild(date);
+        const content = document.createElement('span');
+        content.textContent = task.text;
+        div.appendChild(content);
 
         const btn = document.createElement('button');
         btn.innerHTML = '🗑️';
@@ -200,10 +197,9 @@
         btn.onclick = () => deleteTask(i);
         div.appendChild(btn);
 
-        if (task.completed && task.category === 'Alla') {
-          document.getElementById('Slutförda').appendChild(div);
+        if (task.completed && task.category !== 'Alla') {
+          document.getElementById(task.category)?.appendChild(div);
         } else {
-          const section = document.getElementById(task.category) || document.getElementById('Alla uppgifter');
           section.appendChild(div);
         }
 
@@ -219,6 +215,21 @@
       document.getElementById('count-Kom ihåg').textContent = counts['Kom ihåg'] || 0;
       document.getElementById('count-All').textContent = counts.All || 0;
       document.getElementById('count-Completed').textContent = counts.Completed || 0;
+    }
+
+    let xStart = null;
+    function handleTouchStart(evt) {
+      xStart = evt.touches[0].clientX;
+    }
+
+    function handleTouchMove(index, evt) {
+      if (!xStart) return;
+      let xEnd = evt.touches[0].clientX;
+      let diff = xEnd - xStart;
+      if (Math.abs(diff) > 40) {
+        toggleComplete(index);
+        xStart = null;
+      }
     }
 
     renderTasks();
