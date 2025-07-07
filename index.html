@@ -1,110 +1,102 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Min Tavla</title>
+  <meta charset="UTF-8">
+  <title>Min tavla</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
+      background-color: #000;
+      color: white;
       font-family: sans-serif;
-      padding: 1rem;
-      background-color: #f4f4f4;
+      padding: 20px;
     }
-    h1 { text-align: center; }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-width: 400px;
-      margin: 0 auto;
+    h1, h2 {
+      margin-bottom: 10px;
     }
-    input, textarea, select, button {
-      padding: 0.5rem;
-      font-size: 1rem;
+    input, select {
+      padding: 10px;
+      margin: 10px 0;
+      display: block;
     }
-    #notes {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+    #noteText {
+      width: 300px;
+      height: 60px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
     }
     .note {
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: #222;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 5px;
+      max-width: 500px;
+      position: relative;
+    }
+    .note.done {
+      background: #004400;
+    }
+    .note small {
+      display: block;
+      font-size: 0.8em;
+      color: #aaa;
+    }
+    .section {
+      margin-top: 30px;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: red;
+      border: none;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h1>Min Tavla</h1>
+  <h1>Min tavla</h1>
 
-  <form id="noteForm">
-    <input type="text" id="title" placeholder="Rubrik" required />
-    <textarea id="content" placeholder="Innehåll" required></textarea>
-    <select id="category">
-      <option value="Alla">Alla</option>
-      <option value="Milo">Milo</option>
-      <option value="Alice">Alice</option>
-      <option value="Slutförda">Slutförda</option>
-    </select>
-    <input type="password" id="pin" placeholder="PIN-kod" required />
-    <button type="submit">Spara</button>
-  </form>
+  <input type="text" id="noteText" placeholder="Skriv...">
+  <select id="assignedTo">
+    <option value="Alla">Alla</option>
+    <option value="Milo">Milo</option>
+    <option value="Alice">Alice</option>
+    <option value="Sandra">Sandra</option>
+    <option value="Sibbe">Sibbe</option>
+  </select>
+  <button onclick="addNote()">Skapa uppgift</button>
+  <button onclick="location.reload()">🔄 Uppdatera</button>
 
-  <div id="notes"></div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "DIN_API_KEY",
-      authDomain: "DITT_PROJECT.firebaseapp.com",
-      projectId: "DITT_PROJECT",
-      storageBucket: "DITT_PROJECT.appspot.com",
-      messagingSenderId: "XXXXXXX",
-      appId: "DITT_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const noteForm = document.getElementById("noteForm");
-    const notesDiv = document.getElementById("notes");
-
-    noteForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const title = document.getElementById("title").value.trim();
-      const content = document.getElementById("content").value.trim();
-      const category = document.getElementById("category").value;
-      const pin = document.getElementById("pin").value;
-
-      if (pin !== "1234") {
-        alert("Fel PIN-kod");
-        return;
-      }
-
-      await db.collection("notes").add({
-        title, content, category, timestamp: Date.now()
-      });
-
-      noteForm.reset();
-      loadNotes();
-    });
-
-    async function loadNotes() {
-      notesDiv.innerHTML = "";
-      const snapshot = await db.collection("notes").orderBy("timestamp", "desc").get();
-      snapshot.forEach(doc => {
-        const note = doc.data();
-        const div = document.createElement("div");
-        div.className = "note";
-        div.innerHTML = `<strong>${note.title}</strong><br>${note.content}<br><em>${note.category}</em>`;
-        notesDiv.appendChild(div);
-      });
-    }
-
-    loadNotes();
-  </script>
-</body>
-</html>
+  <div class="section">
+    <h2>Alla uppgifter</h2>
+    <div id="Alla"></div>
+  </div>
+  <div class="section">
+    <h2>Milo</h2>
+    <div id="Milo"></div>
+  </div>
+  <div class="section">
+    <h2>Alice</h2>
+    <div id="Alice"></div>
+  </div>
+  <div class="section">
+    <h2>Sandra</h2>
+    <div id="Sandra"></div>
+  </div>
+  <div class="section">
+    <h2>Sibbe</h2>
+    <div id="Sibbe"></div>
+  </div>
+  <div class="section">
+    <h2>Slutförda uppgifter</h2>
+    <div id="completed-notes"></div>
+  </
