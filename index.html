@@ -2,20 +2,91 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Min tavla</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      color: white;
+    }
+    .overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .task-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .task {
+      flex: 1 1 calc(50% - 10px);
+      max-width: calc(50% - 10px);
+      background-color: #003333;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .task.komihag {
+      background-color: #333300;
+      max-width: calc(33% - 10px);
+    }
+    .task.completed span {
+      color: lime;
+      text-decoration: line-through;
+    }
+    .person-section {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .task input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    select, input[type="text"] {
+      padding: 6px;
+      border-radius: 4px;
+      border: none;
+    }
+    button {
+      padding: 6px 12px;
+      border: none;
+      background-color: white;
+      color: black;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .trash {
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Min tavla</h1>
-      <button id="refresh">🔄</button>
-    </header>
-    <div class="input-row">
-      <select id="category">
+  <div class="overlay">
+    <h1>Min tavla</h1>
+    <div class="controls">
+      <select id="person">
         <option value="Alla">Alla</option>
         <option value="Milo">Milo</option>
         <option value="Alice">Alice</option>
@@ -24,43 +95,90 @@
         <option value="Kom ihåg">Kom ihåg</option>
       </select>
       <input type="text" id="taskInput" placeholder="Skriv en uppgift...">
-      <button id="addTask">+</button>
+      <button onclick="addTask()">+</button>
     </div>
-    <div class="top-links">
-      <a href="#" id="filter-all">Alla uppgifter (<span id="count-alla">0</span>)</a>
+    <div id="allLink" style="margin: 10px 0;">
+      <a href="#" style="color: white; font-weight: bold;">Alla uppgifter (<span id="allCount">0</span>)</a>
     </div>
-    <main>
-      <section id="kom-ihag">
-        <h2>Kom ihåg</h2>
-        <div class="kom-ihag-section"></div>
-      </section>
-      <section id="milo">
-        <h2>Milo</h2>
-        <div class="task-group" data-group="Milo"></div>
-      </section>
-      <section id="alice">
-        <h2>Alice</h2>
-        <div class="task-group" data-group="Alice"></div>
-      </section>
-      <section id="sandra">
-        <h2>Sandra</h2>
-        <div class="task-group" data-group="Sandra"></div>
-      </section>
-      <section id="sibbe">
-        <h2>Sibbe</h2>
-        <div class="task-group" data-group="Sibbe"></div>
-      </section>
-      <section id="alla">
-        <h2>Alla uppgifter</h2>
-        <div class="task-group" data-group="Alla"></div>
-      </section>
-      <section id="done">
-        <h2>Slutförda uppgifter</h2>
-        <div class="task-group" data-group="Slutförd"></div>
-      </section>
-    </main>
+
+    <div id="sections"></div>
   </div>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0S1NPzRdkGOKp0IzBfKSvE_845yq0q58",
+      authDomain: "vh1-lagtavla.firebaseapp.com",
+      databaseURL: "https://vh1-lagtavla-default-rtdb.firebaseio.com",
+      projectId: "vh1-lagtavla",
+      storageBucket: "vh1-lagtavla.appspot.com",
+      messagingSenderId: "145946104646",
+      appId: "1:145946104646:web:75a48a1665198ae0644b47"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const sections = ["Kom ihåg", "Milo", "Alice", "Sandra", "Sibbe", "Alla uppgifter", "Slutförda uppgifter"];
+    const sectionEl = document.getElementById("sections");
+    const taskInput = document.getElementById("taskInput");
+    const personSelect = document.getElementById("person");
+
+    const renderSections = () => {
+      sectionEl.innerHTML = "";
+      sections.forEach(section => {
+        const container = document.createElement("div");
+        container.className = "person-section";
+        container.innerHTML = `<h3>${section}</h3><div class="task-container" id="${section}"></div>`;
+        sectionEl.appendChild(container);
+      });
+    };
+
+    const updateCounts = (tasks) => {
+      const allCount = Object.values(tasks || {}).filter(t => t.person === "Alla" && !t.completed).length;
+      document.getElementById("allCount").innerText = allCount;
+    };
+
+    const loadTasks = () => {
+      firebase.database().ref("tasks").on("value", snapshot => {
+        const tasks = snapshot.val() || {};
+        renderSections();
+        updateCounts(tasks);
+        Object.entries(tasks).forEach(([id, task]) => {
+          const div = document.createElement("div");
+          div.className = `task ${task.completed ? 'completed' : ''} ${task.person === 'Kom ihåg' ? 'komihag' : ''}`;
+          div.innerHTML = `
+            <label>
+              <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete('${id}')">
+              <span>${task.text}</span>
+            </label>
+            <span class="trash" onclick="deleteTask('${id}')">🗑️</span>
+          `;
+          const section = document.getElementById(task.completed && task.person === "Alla" ? "Slutförda uppgifter" : task.person);
+          if (section) section.appendChild(div);
+        });
+      });
+    };
+
+    const addTask = () => {
+      const text = taskInput.value.trim();
+      const person = personSelect.value;
+      if (!text) return;
+      const newRef = db.ref("tasks").push();
+      newRef.set({ text, person, completed: false });
+      taskInput.value = "";
+    };
+
+    const deleteTask = (id) => {
+      db.ref("tasks/" + id).remove();
+    };
+
+    const toggleComplete = (id) => {
+      db.ref("tasks/" + id).once("value", snap => {
+        const data = snap.val();
+        const name = data.completed ? null : prompt("Vem genomförde uppgiften?");
+        db.ref("tasks/" + id).update({ completed: !data.completed, completedBy: name });
+      });
+    };
+
+    loadTasks();
+  </script>
+</body
