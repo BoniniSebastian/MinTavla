@@ -3,52 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Min Tavla</title>
+  <title>Min tavla</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
-  <div class="overlay"></div>
   <div class="container">
-    <h1>Min tavla <button id="refresh">⟳</button></h1>
-
+    <header>
+      <h1>Min tavla</h1>
+      <button id="refresh">🔄</button>
+    </header>
     <div class="input-row">
       <select id="category">
         <option value="Alla">Alla</option>
+        <option value="Milo">Milo</option>
+        <option value="Alice">Alice</option>
+        <option value="Sandra">Sandra</option>
+        <option value="Sibbe">Sibbe</option>
         <option value="Kom ihåg">Kom ihåg</option>
       </select>
-      <input type="text" id="noteInput" placeholder="Skriv en uppgift...">
-      <button id="addNote">＋</button>
+      <input type="text" id="taskInput" placeholder="Skriv en uppgift...">
+      <button id="addTask">+</button>
     </div>
-
-    <div class="links">
-      <a href="#Alla">Alla uppgifter (x)</a>
+    <div class="top-links">
+      <a href="#" id="filter-all">Alla uppgifter (<span id="count-alla">0</span>)</a>
     </div>
-
-    <div id="Kom ihåg" class="section">
-      <div class="section-title">Kom ihåg</div>
-    </div>
-    <div id="Milo" class="section">
-      <div class="section-title">Milo</div>
-    </div>
-    <div id="Alice" class="section">
-      <div class="section-title">Alice</div>
-    </div>
-    <div id="Sandra" class="section">
-      <div class="section-title">Sandra</div>
-    </div>
-    <div id="Sibbe" class="section">
-      <div class="section-title">Sibbe</div>
-    </div>
-    <div id="Alla" class="section">
-      <div class="section-title">Alla uppgifter</div>
-    </div>
-    <div id="completed-notes" class="section">
-      <div class="section-title">Slutförda uppgifter</div>
-    </div>
+    <main>
+      <section id="kom-ihag">
+        <h2>Kom ihåg</h2>
+        <div class="kom-ihag-section"></div>
+      </section>
+      <section id="milo">
+        <h2>Milo</h2>
+        <div class="task-group" data-group="Milo"></div>
+      </section>
+      <section id="alice">
+        <h2>Alice</h2>
+        <div class="task-group" data-group="Alice"></div>
+      </section>
+      <section id="sandra">
+        <h2>Sandra</h2>
+        <div class="task-group" data-group="Sandra"></div>
+      </section>
+      <section id="sibbe">
+        <h2>Sibbe</h2>
+        <div class="task-group" data-group="Sibbe"></div>
+      </section>
+      <section id="alla">
+        <h2>Alla uppgifter</h2>
+        <div class="task-group" data-group="Alla"></div>
+      </section>
+      <section id="done">
+        <h2>Slutförda uppgifter</h2>
+        <div class="task-group" data-group="Slutförd"></div>
+      </section>
+    </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
