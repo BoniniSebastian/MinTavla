@@ -59,6 +59,10 @@
     <select id="categorySelect">
       <option value="Alla">Alla</option>
       <option value="Kom ihåg">Kom ihåg</option>
+      <option value="Milo">Milo</option>
+      <option value="Alice">Alice</option>
+      <option value="Sandra">Sandra</option>
+      <option value="Sibbe">Sibbe</option>
       <option value="Gemensam">Gemensam</option>
     </select>
     <input type="text" id="taskInput" placeholder="Skriv en uppgift...">
@@ -67,13 +71,25 @@
 
   <div id="sections">
     <div class="section-header">Kom ihåg</div>
-    <div id="kom-ihag-list"></div>
+    <div id="Kom ihåg"></div>
+
+    <div class="section-header">Milo</div>
+    <div id="Milo"></div>
+
+    <div class="section-header">Alice</div>
+    <div id="Alice"></div>
+
+    <div class="section-header">Sandra</div>
+    <div id="Sandra"></div>
+
+    <div class="section-header">Sibbe</div>
+    <div id="Sibbe"></div>
 
     <div class="section-header">Gemensam</div>
-    <div id="gemensam-list"></div>
+    <div id="Gemensam"></div>
 
     <div class="section-header">Slutförda uppgifter</div>
-    <div id="completed-list"></div>
+    <div id="Slutförda"></div>
   </div>
 
   <script>
@@ -96,20 +112,18 @@
     const categorySelect = document.getElementById('categorySelect');
     const taskCountEl = document.getElementById('taskCount');
 
-    const komList = document.getElementById('kom-ihag-list');
-    const gemList = document.getElementById('gemensam-list');
-    const compList = document.getElementById('completed-list');
+    const sectionIds = ["Kom ihåg", "Milo", "Alice", "Sandra", "Sibbe", "Gemensam", "Slutförda"]
+    const sectionMap = {};
+    sectionIds.forEach(id => sectionMap[id] = document.getElementById(id));
 
     function addTaskToDOM(task, id) {
       const div = document.createElement('div');
       div.className = 'task';
       div.innerText = task.text;
       if (task.completed) {
-        compList.appendChild(div);
-      } else if (task.category === 'Kom ihåg') {
-        komList.appendChild(div);
-      } else {
-        gemList.appendChild(div);
+        sectionMap["Slutförda"].appendChild(div);
+      } else if (sectionMap[task.category]) {
+        sectionMap[task.category].appendChild(div);
       }
     }
 
@@ -128,9 +142,7 @@
     };
 
     db.ref('tasks').on('value', snapshot => {
-      komList.innerHTML = '';
-      gemList.innerHTML = '';
-      compList.innerHTML = '';
+      sectionIds.forEach(id => sectionMap[id].innerHTML = '');
       const tasks = snapshot.val() || {};
       Object.entries(tasks).forEach(([id, task]) => addTaskToDOM(task, id));
       updateTaskCount(tasks);
